@@ -9,7 +9,48 @@
 
 (in-package :weblocks-clsql)
 
-(export '(order-by-expression range-to-offset range-to-limit))
+(export '(order-by-expression range-to-offset range-to-limit
+	  create-class-id-sequence class-id-sequence-name *create-class-id-sequences-on-demand*
+	  sql-name))
+
+;;;;;;;;;;;;;;;;;;;;;;
+;;; Schema support ;;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+(defun create-class-id-sequence (class-name &optional (store *default-store*))
+  "Creates the database sequence used to assign ID values to instances of
+the named class.  See *CREATE-CLASS-ID-SEQUENCES-ON-DEMAND*."
+  (let* ((root-class (class-root-class (find-class class-name)))
+	 (sequence-name (class-id-sequence-name root-class)))
+    (unless (sequence-exists-p sequence-name :database store :owner :all)
+      (create-sequence sequence-name :database store))
+    sequence-name))
+
+(defvar *create-class-id-sequences-on-demand* t
+  "If you are careful to create all your class sequences at the same time you
+create the tables -- by calling CREATE-CLASS-ID-SEQUENCE after calling
+CREATE-VIEW-FROM-CLASS -- you can set this to NIL and get a performance
+boost.")
+
+(defvar *class-id-sequence-name-cache* (make-hash-table))
+
+(defun class-id-sequence-name (class-name)
+  (let* ((class (class-root-class (find-class class-name))))
+    (or (gethash class *class-id-sequence-name-cache*)
+	(let* ((class-name (class-name class))
+	       (seq-name (intern (concatenate 'string
+					      (symbol-name class-name)
+					      (symbol-name '#:-seq))
+				 (symbol-package class-name))))
+	  (setf (gethash class *class-id-sequence-name-cache*) seq-name)
+	  seq-name))))
+
+(defun sql-name (object-name)
+  "If you need to go around CLSQL for some reason, you'll need to know the SQL
+names for your classes and sequences.  This function will give it to you."
+  (let ((class (find-class object-name nil)))
+    (clsql-sys::escaped (clsql-sys::database-identifier
+			  (or class object-name) *default-store*))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Initialization/finalization ;;;
@@ -50,15 +91,13 @@
 (defmethod persist-object ((store database) object &key)
   ;; Note, we persist new objects in three steps, this should be
   ;; optimized into a single query later
-  (let* ((class-name (class-name (class-root-class (class-of object))))
+  (let* ((class (class-root-class (class-of object)))
 	 (current-id (object-id object))
-	 (sequence-name (intern (concatenate 'string
-					     (symbol-name class-name)
-					     (symbol-name '#:-seq))
-				(symbol-package class-name))))
+	 (sequence-name (class-id-sequence-name class)))
     (unless current-id
       ;; Create sequence if necessary
-      (unless (sequence-exists-p sequence-name :database store :owner :all)
+      (when (and *create-class-id-sequences-on-demand*
+		 (not (sequence-exists-p sequence-name :database store :owner :all)))
 	(create-sequence sequence-name :database store))
       ;; Set the id to next sequence number
       (setf (object-id object)
