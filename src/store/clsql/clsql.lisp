@@ -21,7 +21,7 @@
   "Creates the database sequence used to assign ID values to instances of
 the named class.  See *CREATE-CLASS-ID-SEQUENCES-ON-DEMAND*."
   (let* ((root-class (class-root-class (find-class class-name)))
-	 (sequence-name (class-id-sequence-name root-class)))
+	 (sequence-name (class-id-sequence-name (class-name root-class))))
     (unless (sequence-exists-p sequence-name :database store :owner :all)
       (create-sequence sequence-name :database store))
     sequence-name))
