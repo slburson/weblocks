@@ -34,8 +34,8 @@ boost.")
 
 (defvar *class-id-sequence-name-cache* (make-hash-table))
 
-(defun class-id-sequence-name (class-name)
-  (let* ((class (class-root-class (find-class class-name))))
+(defun class-id-sequence-name (class)
+  (let ((class (class-root-class (if (symbolp class) (find-class class) class))))
     (or (gethash class *class-id-sequence-name-cache*)
 	(let* ((class-name (class-name class))
 	       (seq-name (intern (concatenate 'string
@@ -47,7 +47,7 @@ boost.")
 
 (defun sql-name (object-name)
   "If you need to go around CLSQL for some reason, you'll need to know the SQL
-names for your classes and sequences.  This function will give it to you."
+names for your classes and sequences.  This function will give them to you."
   (let ((class (find-class object-name nil)))
     (clsql-sys::escaped (clsql-sys::database-identifier
 			  (or class object-name) *default-store*))))
