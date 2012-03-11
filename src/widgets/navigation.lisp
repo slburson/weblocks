@@ -21,7 +21,9 @@
 		 :initform nil
 		 :documentation "A list of uri-tokens representing a set
 		 of panes that should be hidden (not rendered in a menu,
-		 but accessible from within this navigation object.)")
+		 but accessible from within this navigation object.)  Or,
+		 a function of no arguments returning such a list; it will
+		 be called each time the navigation is rendered.")
    (render-content-p :accessor navigation-render-content-p
 		   :initarg :render-content-p
 		   :initform t
@@ -47,16 +49,19 @@ may be NIL in which case the default pane name is provided."
   (:documentation "Returns the menu items for a navigation object
   in a format suitable for RENDER-MENU. Hidden panes will not be included.")
   (:method ((obj navigation))
-    (append
-      (remove nil
-	      (mapcar (lambda (pane)
-			(let ((token (car pane)))
-			  (unless (member token (navigation-hidden-panes obj)
-					  :test #'string-equal)
-			    (cons (navigation-pane-name-for-token obj token)
-				  (uri-tokens-to-string token)))))
-		      (static-selector-panes obj)))
-      (navigation-extra-menu-items obj))))
+    (let* ((nhp (navigation-hidden-panes obj))
+	   (hidden-panes (if (functionp nhp) (funcall nhp)
+			   nhp)))
+      (append
+	(remove nil
+		(mapcar (lambda (pane)
+			  (let ((token (car pane)))
+			    (unless (member token hidden-panes
+					    :test #'string-equal)
+			      (cons (navigation-pane-name-for-token obj token)
+				    (uri-tokens-to-string token)))))
+			(static-selector-panes obj)))
+	(navigation-extra-menu-items obj)))))
 
 (defgeneric render-navigation-menu (obj &rest args)
   (:documentation "Renders the HTML menu for the navigation widget.")
