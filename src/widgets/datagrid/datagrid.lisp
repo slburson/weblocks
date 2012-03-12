@@ -21,6 +21,9 @@
 (defmethod dataseq-render-mining-bar ((obj datagrid) &rest args)
   (with-html
     (:div :class "data-mining-bar"
+	  (let ((caption (view-caption (find-view (dataseq-view obj)))))
+	    (when caption
+	      (with-html (:div :class "caption" (str caption)))))
 	  (when (dataseq-show-total-items-count-p obj)
 	    (render-total-items-message obj))
 	  (when (dataseq-allow-select-p obj)
