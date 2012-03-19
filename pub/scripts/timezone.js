@@ -4,10 +4,12 @@
 //
 //   <body onload="checkTZCookie();">
 
+// Returns true iff it succeeded.
 function setCookie(cookieName, cookieValue, expiredays) {
     var exdate = new Date();
     exdate.setDate(exdate.getDate() + expiredays);
     document.cookie = cookieName + "=" + escape(cookieValue) + ((expiredays == null) ? "" : ";expires=" + exdate.toUTCString());
+    return document.cookie.indexOf(cookieName + "=") >= 0;
 }
 
 function getCookie(cookieName) {
@@ -27,10 +29,15 @@ function getUtcOffset() {
     return (new Date()).getTimezoneOffset();
 }
 
+var canSetTZCookie = true;
+
 function checkTZCookie() {
     var timeOffset = getCookie("TimeZoneOffset");
-    if (timeOffset == null || timeOffset == "") {
-	setCookie("TimeZoneOffset", getUtcOffset(), 1);
-	window.location.reload();
+    if ((timeOffset == null || timeOffset == "") && canSetTZCookie) {
+	if (setCookie("TimeZoneOffset", getUtcOffset(), 1)) {
+	    window.location.reload();
+	} else {
+	    canSetTZCookie = false;
+	}
     }
 }
