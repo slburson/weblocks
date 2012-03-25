@@ -32,7 +32,13 @@
    (extra-menu-items :accessor navigation-extra-menu-items
 		     :initarg :extra-menu-items
 		     :initform nil
-		     :documentation "Additional items for RENDER-MENU."))
+		     :documentation "Additional items for RENDER-MENU.")
+   (disabled-panes :accessor navigation-disabled-panes
+		   :initarg :disabled-panes
+		   :initform nil
+		   :documentation "Panes in this list are rendered as
+		   visible but disabled. This feature can be useful for
+		   section labels within a menu, for example."))
   (:documentation "The navigation widget can act as a menu controls, a
   tabbed control, etc. It is a static-selector that also knows what its
   pane names are, so it can render a menu, set a page title, and
@@ -68,7 +74,8 @@ may be NIL in which case the default pane name is provided."
            :header (navigation-header obj)
            :container-id (dom-id obj)
            :empty-message "No navigation entries"
-           menu-args)))
+           :disabled-pane-names (navigation-disabled-panes obj)
+	   menu-args)))
 
 (defmethod render-widget-body ((obj navigation) &rest args)
   (apply #'render-navigation-menu obj args))
