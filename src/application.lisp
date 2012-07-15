@@ -240,7 +240,7 @@ co-exist, so long as they have different prefixes
 the dependencies list.  By default 'defwebapp' adds the following resources:
 
   Stylesheets: layout.css, main.css
-  Scripts: prototype.js, weblocks.js, scriptaculous.js
+  Scripts: jquery.min.js, weblocks.js
 
 :dependencies - is a list of dependencies to append to the default dependencies
 list of the application.
@@ -317,8 +317,7 @@ to my `application-dependencies' slot."
 	    (append '((:stylesheet "layout")
 		      (:stylesheet "main")
 		      (:stylesheet "dialog")
-		      (:script "prototype")
-		      (:script "scriptaculous")
+		      (:script "jquery.min")
 		      (:script "shortcut")
 		      (:script "weblocks")
 		      (:script "dialog")
