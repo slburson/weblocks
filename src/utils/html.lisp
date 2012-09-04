@@ -308,13 +308,15 @@ used instead of the default 'Close'."
                       :onblur (when default-value
                                 (format nil "if (this.value==\"\") this.value=\"~A\";" default-value))
 		      :disabledp disabledp)
+  ;; Nice idea, but doesn't actually work: "type property can't be changed" from jQuery.
+  ;; Apparently wouldn't work in IE in any case.
   (when visibility-option-p
     (send-script (ps:ps*
                    `(defun toggle-password-visibility (field)
                       (let ((it ($ field)))
-                        (if (== (slot-value it 'type) "password")
-                          (setf (slot-value it 'type) "text")
-                          (setf (slot-value it 'type) "password"))))))
+			(if (== ((@ it attr) ':type) "password")
+			    ((@ it attr) ':type "text")
+			  ((@ it attr) ':type "password"))))))
     (with-html
       (:label
         (render-checkbox (gen-id) nil

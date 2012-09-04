@@ -318,6 +318,7 @@ to my `application-dependencies' slot."
 		      (:stylesheet "main")
 		      (:stylesheet "dialog")
 		      (:script "jquery.min")
+		      (:script "jquery-seq.min")
 		      (:script "shortcut")
 		      (:script "weblocks")
 		      (:script "dialog")
