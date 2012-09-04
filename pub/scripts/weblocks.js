@@ -1,5 +1,35 @@
 var debug_with_old_replace_method = false;
 
+// Modified from jquery-1.8.1.js.  (Added 'submit' to 'rinput').
+var rCRLF = /\r?\n/g,
+    rinput = /^(?:color|date|datetime|datetime-local|email|hidden|month|number|password|range|search|submit|tel|text|time|url|week)$/i,
+    rselectTextarea = /^(?:select|textarea)/i;
+
+// This is serializeArray from jquery-1.8.1.js, unchanged except for the value of 'rinput'
+// above.  Weblocks needs the values of the 'submit' inputs.
+jQuery.fn.serializeArray = function() {
+    return this.map(function(){
+	return this.elements ? jQuery.makeArray( this.elements ) : this;
+    })
+    .filter(function(){
+	return this.name && !this.disabled &&
+	    ( this.checked || rselectTextarea.test( this.nodeName ) ||
+		rinput.test( this.type ) );
+    })
+    .map(function( i, elem ){
+	var val = jQuery( this ).val();
+
+	return val == null ?
+	    null :
+	    jQuery.isArray( val ) ?
+		jQuery.map( val, function( val, i ){
+		    return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+		}) :
+		{ name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+    }).get();
+}
+
+
 // Taken from http://css-tricks.com/snippets/jquery/serialize-form-to-json/
 jQuery.fn.serializeObject = function()
 {
@@ -167,9 +197,18 @@ function initiateFormAction(actionCode, form, sessionString) {
     initiateActionWithArgs(actionCode, sessionString, serializedForm, form.attr('method'));
 }
 
+// This is how serializeArray knows which input to serialize.
 function disableIrrelevantButtons(currentButton) {
-    $(currentButton).parents('form').find('submit').attr('disabled', true);
+    $(currentButton).parents('form').find('input[type="submit"]').attr('disabled', true);
     $(currentButton).attr('disabled', false);
+}
+
+function findFirstInput(form) {
+    return $(form).find('input:enabled[type!="hidden"]').first();
+}
+
+function focusFirstInput(form) {
+    findFirstInput(form).focus();
 }
 
 // Fix IE6 flickering issue
@@ -270,7 +309,7 @@ function toggleExpandCollapse (heading,container) {
 function updateWidgetStateFromHash() {
   libraryMissingWarning('updateWidgetStateFromHash');
 
-  withScripts("/pub/scripts/jquery.ba-bbq.js", function(){
+  withScripts("/pub/scripts/jquery.ba-bbq.min.js", function(){
     $(window).bind('hashchange', function(event){
       var hash = window.location.hash;
       if (hash)
