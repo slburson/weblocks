@@ -141,7 +141,7 @@
                           :accessor gzip-dependency-types
                           :initarg :gzip-dependency-types
 			  :initform '(:stylesheet :script)
-			  :documentation "This enables gziping of css, js files.
+			  :documentation "This enables gzipping of css, js files.
                                           When debug is on, gzip is turned off.")
    (init-user-session :type (or symbol function)
                       :accessor weblocks-webapp-init-user-session
@@ -213,7 +213,7 @@ layout and dependencies running on the same server."))
 
 ;; abstraction macro
 (defmacro defwebapp (name &rest initargs &key 
-		     subclasses
+		     superclasses subclasses
 		     slots
 		     (autostart t) &allow-other-keys)
   "This macro defines the key parameters for a stand alone web application.  
@@ -221,8 +221,10 @@ It defines both a class with name 'name' and registers an instance of that class
 It also instantiates a defvar with an instance of this class.  This is intended
 to be the primary way a web application is defined.
 
-:subclasses - if you want to inherit subclass behvior from other webapps, you
-can.  It's not likely to be needed much
+:superclasses - if you want to inherit behavior from other webapps, you
+can.  It's not likely to be needed much.
+
+:subclasses -- erroneous, deprecated synonym for ':superclasses'.
 
 :slots - webapps are class so slots are a list of definitions just as in defclass,
 but as slots are likely to be rare on webapps, we make this a keyword argument.
@@ -239,8 +241,9 @@ co-exist, so long as they have different prefixes
 :ignore-default-dependencies inhibits appending the default dependencies to
 the dependencies list.  By default 'defwebapp' adds the following resources:
 
-  Stylesheets: layout.css, main.css
-  Scripts: jquery.min.js, weblocks.js
+  Stylesheets: variables.less, bootstrap-all.less, weblocks.less
+  Scripts: jquery.min.js, jquery-seq.min.js, bootstrap.min.js, weblocks.js
+  (weblocks.js loads jquery.ba-bbq.min.js on demand)
 
 :dependencies - is a list of dependencies to append to the default dependencies
 list of the application.
@@ -269,12 +272,12 @@ application name symbol is defined.
 :autostart - Whether this webapp is started automatically when start-weblocks is
 called (primarily for backward compatibility"
   `(progn
-     (defclass ,name (,@subclasses weblocks-webapp)
+     (defclass ,name (,@(or superclasses subclasses) weblocks-webapp)
        ,slots
        (:autostart . ,autostart)
        (:default-initargs
 	. ,(remove-keyword-parameters
-	    initargs :subclasses :slots :autostart))
+	    initargs :superclasses :subclasses :slots :autostart))
        (:metaclass webapp-class))
      (when (get-webapp ',name nil)
        (restart-webapp ',name))))
@@ -314,14 +317,12 @@ to my `application-dependencies' slot."
                       (concatenate 'string "/" (attributize-name class-name))))
     (unless ignore-default-dependencies
       (setf (weblocks-webapp-application-dependencies self)
-	    (append '((:stylesheet "layout")
-		      (:stylesheet "main")
-		      (:stylesheet "dialog")
+	    (append '((:stylesheet "weblocks")
+		      (:script "less.min")
 		      (:script "jquery.min")
 		      (:script "jquery-seq.min")
-		      (:script "shortcut")
+		      (:script "bootstrap.min")
 		      (:script "weblocks")
-		      (:script "dialog")
 		      (:script "timezone"))
 		    (weblocks-webapp-application-dependencies self)))))
   (let ((pfp (weblocks-webapp-public-files-path self)))

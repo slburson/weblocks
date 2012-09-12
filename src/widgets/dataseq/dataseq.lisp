@@ -316,8 +316,7 @@ for the dataseq.")
     (render-widget (dataseq-pagination-widget obj))))
 
 (defmethod dependencies append ((obj dataseq))
-  (when (dataseq-allow-pagination-p obj)
-    (list (make-local-dependency :stylesheet "pagination"))))
+  )
 
 ;;; Selection
 (defun dataseq-selection-empty-p (selection-or-dataseq)
@@ -458,7 +457,7 @@ if render-common-ops-p is set to true (default).")
 	     (with-html
 	       (:div :class "operations"
 		     (mapc (lambda (op)
-			     (render-button (car op)))
+			     (render-button (car op) :kind ':primary))
 			   (append
 			    (dataseq-common-ops obj)
 			    (when (dataseq-allow-select-p obj)

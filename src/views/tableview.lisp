@@ -55,16 +55,15 @@
 			     (fields-suffix-fn (view-fields-default-suffix-fn view))
 			     &allow-other-keys)
   (let* ((object-name (object-class-name (car obj)))
-	 (header-class (format nil "view table ~A"
+	 (header-class (format nil "table-~A"
 			       (if (eql object-name 'null)
 				   "empty"
 				   (attributize-name object-name)))))
     (with-html
       (:div :class header-class
-	    (with-extra-tags
-	      (safe-apply fields-prefix-fn view obj args)
-	      (apply body-fn view obj args)
-	      (safe-apply fields-suffix-fn view obj args))))))
+	    (safe-apply fields-prefix-fn view obj args)
+	    (apply body-fn view obj args)
+	    (safe-apply fields-suffix-fn view obj args)))))
 
 (defgeneric with-table-view-header (view obj widget header-fn rows-fn &rest args
 					 &key summary &allow-other-keys)
@@ -73,7 +72,10 @@ table, thead, and tbody HTML.")
   (:method ((view table-view) obj widget header-fn rows-fn &rest args
 	    &key summary &allow-other-keys)
     (with-html
-      (:table :summary (or summary (table-view-default-summary view))
+      ;; &&& Need option for condensed
+      (:table :class "table table-condensed"
+	      :summary (or summary (table-view-default-summary view))
+	      ;; See dataseq-render-mining-bar
 	      ;(when (view-caption view)
 	      ;  (htm (:caption (str (view-caption view)))))
 	      (htm
@@ -128,7 +130,7 @@ rendering.")
   (:method (value presentation (field table-view-field) (view table-view) widget obj &rest args)
     (declare (ignore args))
     (with-html
-      (:span :class "label" (str (view-field-label field))))))
+      (:span :class "table-label" (str (view-field-label field))))))
 
 ;; Table body
 (defgeneric with-table-view-body-row (view obj widget &rest args &key alternp &allow-other-keys)

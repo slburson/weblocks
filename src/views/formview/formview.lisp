@@ -36,6 +36,11 @@ name of the field to inform users that the field is required.")
                             in a form is longer than this threshold,
                             an error summary is rendered at top
                             whenever applicable.")
+   (form-style :initform ':horizontal
+	       :initarg :form-style
+	       :accessor form-view-form-style
+	       :documentation "One of :horizontal (the default), :inline, :stacked.
+	       Note: validation error display works correctly only with :horizonal.")
    (use-ajax-p :initform t
 	       :initarg :use-ajax-p
 	       :accessor form-view-use-ajax-p
@@ -157,6 +162,10 @@ before relations can be updated."))
                        required and missing from the input
                        data. Otherwise, the standard required error
                        message is presented.")
+   (help-text :initform nil
+	      :initarg :help-text
+	      :accessor form-view-field-help-text
+	      :documentation "If supplied, displayed near the input.")
    (disabledp :initform nil
 	      :initarg :disabledp
 	      :accessor form-view-field-raw-disabled-p
@@ -231,7 +240,7 @@ before relations can be updated."))
 the form. This function can be redefined to render validation summary
 differently.")
   (:method ((view form-view) obj widget errors)
-    (declare (ignore view obj))
+    (declare (ignore obj))
     (when errors
       (let ((non-field-errors (find-all errors #'null :key #'car))
 	    (field-errors (find-all errors (compose #'not #'null) :key #'car)))
@@ -272,28 +281,35 @@ differently.
 form-view-buttons for a given view.")
   (:method ((view form-view) obj widget &rest args &key form-view-buttons &allow-other-keys)
     (declare (ignore obj args))
-    (flet ((find-button (name)
-	     (ensure-list
-	       (if form-view-buttons
-		   (find name form-view-buttons
+    (labels ((find-button (name)
+	       (ensure-list
+		 (if form-view-buttons
+		     (find name form-view-buttons
+			   :key (lambda (item)
+				  (car (ensure-list item))))
+		   (find name (form-view-buttons view)
 			 :key (lambda (item)
-				(car (ensure-list item))))
-		 (find name (form-view-buttons view)
-		       :key (lambda (item)
-			      (car (ensure-list item))))))))
-      (with-html
-	(:div :class "submit"
-	      (let ((submit (find-button :submit)))
-		(when submit
-		  (render-button *submit-control-name*
-				 :value (or (cdr submit)
-					    (humanize-name (car submit))))))
-	      (let ((cancel (find-button :cancel)))
-		(when cancel
-		  (render-button *cancel-control-name*
-				 :class "submit cancel"
-				 :value (or (cdr cancel)
-					    (humanize-name (car cancel)))))))))))
+				(car (ensure-list item)))))))
+	     (render-buttons ()
+	       (let ((submit (find-button :submit)))
+		 (when submit
+		   (render-button *submit-control-name*
+				  :value (or (cdr submit)
+					     (humanize-name (car submit)))
+				  :kind ':primary))
+		 (let ((cancel (find-button :cancel)))
+		   (when cancel
+		     (when submit
+		       (with-html (str "&nbsp;&nbsp;")))
+		     (render-button *cancel-control-name*
+				    :class "submit cancel"
+				    :value (or (cdr cancel)
+					       (humanize-name (car cancel)))))))))
+      (if (eq (form-view-form-style view) ':horizontal)
+	  (with-html
+	    (:div :class "form-actions"
+		  (render-buttons)))
+	(render-buttons)))))
 
 (defmethod view-caption ((view form-view))
   (if (slot-value view 'caption)
@@ -312,19 +328,24 @@ form-view-buttons for a given view.")
 			     &allow-other-keys)
   (declare (special *on-ajax-complete-scripts* *form-submit-dependencies*))
   (let ((form-id (gen-id))
-	(header-class (format nil "view form ~A"
-			      (attributize-name (object-class-name obj)))))
-    (when (>= (count-view-fields view)
-	      (form-view-error-summary-threshold view))
-      (setf header-class (concatenate 'string header-class " long-form")))
+	(header-class (append-css-classes (ecase (form-view-form-style view)
+					    (:horizontal "form-horizontal")
+					    (:inline "form-inline")
+					    (:stacked nil))
+					  ;; &&& Shouldn't this be the view name???
+					  (format nil "form-~A"
+						(attributize-name (object-class-name obj)))
+					  (and (>= (count-view-fields view)
+						   (form-view-error-summary-threshold view))
+					       "long-form"))))
     (let ((form-body
 	   (let ((*weblocks-output-stream* (make-string-output-stream)))
 	     (with-html
-               (awhen (view-caption view)
-                 (htm (:h1 (fmt (view-caption view) (humanize-name (object-class-name obj))))))
+               (when (view-caption view)
+                 (htm (:legend (fmt (view-caption view) (humanize-name (object-class-name obj))))))
 	       (render-validation-summary view obj widget validation-errors)
 	       (safe-apply fields-prefix-fn view obj args)
-	       (:ul (apply body-fn view obj args))
+	       (apply body-fn view obj args)
 	       (safe-apply fields-suffix-fn view obj args)
 	       (apply #'render-form-view-buttons view obj widget args)
 	       (get-output-stream-string *weblocks-output-stream*)))))
@@ -346,31 +367,60 @@ form-view-buttons for a given view.")
                                    (attributize-view-field-name field-info)
                                    (attributize-name (view-field-slot-name field))))
 	 (validation-error (assoc field validation-errors))
-	 (field-class (concatenate 'string "field-" (aif attributized-slot-name it "")
-				   (when validation-error " item-not-validated")))
+	 (style (form-view-form-style view))
          (*presentation-dom-id* (gen-id)))
-    (with-html
-      (:li :class field-class
-	   (:label :class (attributize-presentation
-			   (view-field-presentation field))
-                   :for *presentation-dom-id*
-		   (:span :class "slot-name"
-			  (:span :class "extra"
-				 (unless (empty-p (view-field-label field))
-				   (str (view-field-label field))
-				   (str ":&nbsp;"))
-				 (render-form-view-field-required-indicator
-				   field view widget presentation value obj))))
-           (apply #'render-view-field-value
-                  value presentation
-                  field view widget obj
-                  :field-info field-info
-                  args)
-           (when validation-error
-             (htm (:p :class "validation-error"
-                      (:em
-                        (:span :class "validation-error-heading" "Error:&nbsp;")
-                        (str (format nil "~A" (cdr validation-error)))))))))))
+    (declare (ignore attributized-slot-name))	; needed later?
+    ;; See RENDER-FORM-PRESENTATION below.
+    (labels ((render-value ()
+	       (apply #'render-view-field-value
+		      value presentation
+		      field view widget obj
+		      :field-info field-info
+		      args))
+	     (render-label (include-value-p)
+	       (with-html
+		 (:label :class (append-css-classes (and (eq style ':horizontal)
+							 (not include-value-p)
+							 "control-label")
+						    (attributize-presentation
+						      (view-field-presentation field)))
+			 :for *presentation-dom-id*
+			 (when include-value-p
+			   (render-value))
+			 (unless (empty-p (view-field-label field))
+			   (str (view-field-label field)))
+			 (render-form-view-field-required-indicator
+			   field view widget presentation value obj))))
+	     (wrap-control (body-fn)
+	       (if (eq style ':horizontal)
+		   (with-html
+		     (:div :class "controls"
+			   (funcall body-fn)))
+		 (funcall body-fn)))
+	     (render-field ()
+	       (render-form-presentation presentation #'render-label #'render-value #'wrap-control)
+	       (when validation-error
+		 (with-html (:span :class "help-inline"
+				   (str (cdr validation-error)))))))
+      (when (form-view-field-help-text field)
+	(with-html (:span :class "help-block"
+			  (str (form-view-field-help-text field)))))
+      ;; The div is required in horizontal mode, and wrong otherwise.
+      (if (eq style ':horizontal)
+	  (with-html
+	    (:div :class (append-css-classes "control-group"
+					     (and validation-error "error"))
+		  (render-field)))
+	(render-field)))))
+
+;;; Urgh.  This little mess exists because Bootstrap wants very different HTML
+;;; for checkboxes and radio buttons than for other inputs.
+;;; See http://twitter.github.com/bootstrap/base-css.html#forms
+(defgeneric render-form-presentation (presentation label-fn value-fn wrap-fn)
+  (:method (presentation label-fn value-fn wrap-fn)
+    ;; Default method puts the label first.
+    (funcall label-fn nil)
+    (funcall wrap-fn value-fn)))
 
 (defmethod render-form-view-field-required-indicator ((field form-view-field) (view form-view)
 						      widget presentation value obj)
@@ -379,11 +429,11 @@ form-view-buttons for a given view.")
 	       (not (form-view-field-disabled-p field obj))
 	       required-indicator)
       (with-html
-	(:em :class "required-slot"
-	     (if (eq t required-indicator)
-		 (str *default-required-indicator*)
-		 (str required-indicator))
-	     (str "&nbsp;"))))))
+	(:span :class "required-slot"
+	       (if (eq t required-indicator)
+		   (str *default-required-indicator*)
+		   (str required-indicator))
+	       (str "&nbsp;"))))))
 
 (defmethod render-view-field-value (value (presentation input-presentation)
 				    field view widget obj

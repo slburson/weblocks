@@ -64,6 +64,7 @@ Example:
 => \"stylesheets/navigation.css\""
   (multiple-value-bind (folder ext) (ecase type
                                       (:stylesheet (values "stylesheets" "css"))
+				      (:less-stylesheet (values "stylesheets" "less"))
                                       (:script (values "scripts" "js")))
     (concatenate 'string folder "/" filename "." ext)))
 

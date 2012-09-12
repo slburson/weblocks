@@ -59,33 +59,38 @@
 			     (fields-suffix-fn (view-fields-default-suffix-fn view))
 			     &allow-other-keys)
   (with-html
-    (:div :class (format nil "view data ~A"
+    ;; We're abusing the form-horizontal classes for this purpose.  Seems to work okay though.
+    ;; A bit of custom styling on .control-label will help.
+    (:div :class (format nil "form-horizontal form-horizontal-condensed data-~A"
 			 (attributize-name (object-class-name obj)))
 	  (with-extra-tags
 	    (htm
 	     (unless (empty-p (view-caption view))
-	       (htm (:h1 (fmt (view-caption view)
-			      (humanize-name (object-class-name obj))))))
+	       (htm (:legend (fmt (view-caption view)
+				  (humanize-name (object-class-name obj))))))
 	     (safe-apply fields-prefix-fn view obj args)
-	     (:ul (apply body-fn view obj args))
+	     (apply body-fn view obj args)
 	     (safe-apply fields-suffix-fn view obj args))))))
 
 (defmethod render-view-field ((field data-view-field) (view data-view)
 			      widget presentation value obj
 			      &rest args &key field-info &allow-other-keys)
   (with-html
-    (:li :class (if field-info
-                  (attributize-view-field-name field-info)
-                  (attributize-name (view-field-slot-name field)))
-	 (unless (empty-p (view-field-label field))
-	   (htm (:span :class (concatenate 'string "label "
-					   (attributize-presentation
-					    (view-field-presentation field)))
-		       (str (view-field-label field)) ":&nbsp;")))
-	 (apply #'render-view-field-value
-		value presentation
-		field view widget obj
-		args))))
+    (:div :class "control-group"
+	  (:label :class (append-css-classes "control-label"
+					     (if field-info
+						 (attributize-view-field-name field-info)
+					       (attributize-name (view-field-slot-name field))))
+		  ;; Remove the 5px top padding normally applied to align the label with
+		  ;; the control.
+		  :style "padding-top: 0px;"
+		  (unless (empty-p (view-field-label field))
+		    (str (view-field-label field))))
+	  (:div :class "controls"
+		(apply #'render-view-field-value
+		      value presentation
+		      field view widget obj
+		      args)))))
 
 (defvar *presentation-dom-id* nil "DOM id of the currently rendered
   presentation object. If bound during rendering (for example, in

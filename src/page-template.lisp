@@ -111,7 +111,7 @@ inside it but outside the rendering of the root widget"))
 (defmethod render-page-body ((app weblocks-webapp) body-string)
   "Default page-body rendering method"
   (with-html
-    (:div :class "page-wrapper"
+    (:div :class "container-fluid"
 	  (render-extra-tags "page-extra-top-" 3)
 	  (htm (str body-string))
 	  (render-extra-tags "page-extra-bottom-" 3))))

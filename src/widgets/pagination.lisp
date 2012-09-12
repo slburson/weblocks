@@ -35,6 +35,10 @@
 		 :initarg :current-page
 		 :documentation "The number of the currently viewed
 		 page.")
+   (layout-position :accessor pagination-layout-position
+		    :initform ':right
+		    :initarg :layout-position
+		    :documentation "One of ':left, ':center, ':right.")
    (on-change :accessor pagination-on-change
 	      :initform nil
 	      :initarg :on-change
@@ -97,74 +101,41 @@ managed by a given pagination widget."
     (declare (ignore remainder))
     page-count))
 
-(defgeneric pagination-render-total-item-count (obj &rest args)
-  (:documentation
-   "This function is responsible for rendering the total number of
-items if 'show-total-items' is set to true."))
-
-(defmethod pagination-render-total-item-count ((obj pagination) &rest args)
-  (declare (ignore args))
-  (when (pagination-show-total-items-p obj)
-    (with-html (:span :class "total-items"
-		      " (Total of " 
-		      (str (pagination-total-items obj)) " "
-		      (str (proper-number-form (pagination-total-items obj) "Item"))
-		      ")"))))
-
 (defmethod render-widget-body ((obj pagination) &rest args) 
   (declare (ignore args)
            (special *request-hook*))
-  (when (> (pagination-page-count obj) 0)
+  (when (> (pagination-page-count obj) 1)
     (with-html
-      ; 'Previous' link
-      (when (> (pagination-current-page obj) 1)
-	(render-link (lambda (&rest args)
-                       (declare (ignore args))
-		       (when (> (pagination-current-page obj) 1)
-			 (decf (pagination-current-page obj))
-			 (pagination-call-on-change obj)))
-		     (humanize-name "< Previous")
-		     :class "previous-page")
-	(str "&nbsp;"))
-      ; 'Viewing Page X of Y'
-      (:span :class "page-info"
-	     (:span :class "viewing-label" "Viewing ")
-	     (:span :class "page-label" "Page ")
-	     (:span :class "current-page" (:strong (str (pagination-current-page obj))))
-	     (:span :class "of-label" " of ")
-	     (:span :class "total-pages" (str (pagination-page-count obj))))
-      ; 'Next' link
-      (when (< (pagination-current-page obj)
-	       (pagination-page-count obj))
-	(str "&nbsp;")
-	(render-link (lambda (&rest args)
-                       (declare (ignore args))
-		       (when (< (pagination-current-page obj)
-				(pagination-page-count obj))
-			 (incf (pagination-current-page obj))
-			 (pagination-call-on-change obj)))
-		     (humanize-name "Next >")
-		     :class "next-page"))
-      ; Go to page
-      (when (> (pagination-page-count obj) 1)
-	(with-html-form (:get (curry #'pagination-on-go-to-page obj))
-	  (:label (:span "Go to page:&nbsp;")
-		  (:input :name "page-number"
-			  :class (concatenate 'string
-					      "page-number"
-					      (when (slot-value obj 'last-request-error-p)
-						" item-not-validated"))
-			  :onfocus (concatenate 'string
-						"$(this).removeClassName(\"item-not-validated\");"
-						(when (/= (pagination-current-page obj) 1)
-						  "if(this.value == \"1\") { this.value = \"\"; }"))
-			  :onblur (when (/= (pagination-current-page obj) 1)
-				    "if(this.value == \"\") { this.value = \"1\"; }")
-			  :value (when (/= (pagination-current-page obj) 1)
-				   "1")))
-	  (render-button "go-to-page" :value "Go")))
-      ; Total items
-      (pagination-render-total-item-count obj))))
+      ;; We're already wrapped in a div.pagination, because that's the widget class name.
+      (:div :class (ecase (pagination-layout-position obj)
+		     (:left nil)
+		     (:center "pagination-centered")
+		     (:right "pagination-right"))
+	    (:ul
+	      (:li :class (and (= (pagination-current-page obj) 1) "disabled")
+		   (render-link (lambda (&rest args)
+				  (declare (ignore args))
+				  (when (> (pagination-current-page obj) 1)
+				    (decf (pagination-current-page obj))
+				    (pagination-call-on-change obj)))
+				"Prev"))
+	      (dotimes (i (pagination-page-count obj))
+		(let ((p (1+ i)))	; don't close over a DOTIMES binding!
+		  (htm (:li :class (and (= (pagination-current-page obj) p) "active")
+			    (render-link (lambda (&rest args)
+					   (declare (ignore args))
+					   (setf (pagination-current-page obj) p)
+					   (pagination-call-on-change obj))
+					 (format nil "~D" p))))))
+	      (:li :class (and (= (pagination-current-page obj) (pagination-page-count obj))
+			       "disabled")
+		   (render-link (lambda (&rest args)
+				  (declare (ignore args))
+				  (when (< (pagination-current-page obj)
+					   (pagination-page-count obj))
+				    (incf (pagination-current-page obj))
+				    (pagination-call-on-change obj)))
+				  "Next")))))))
 
 (defun pagination-page-item-range (obj)
   "Returns a range of items that belong to a currently selected

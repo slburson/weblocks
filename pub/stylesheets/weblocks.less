@@ -1,0 +1,140 @@
+
+
+@import "bootstrap-all.less";
+
+
+// ================ Navs
+
+.nav-sidebar-menu {
+  .column(2);
+  background: @osbAccentBackground;
+}
+
+.nav-sidebar-menu > ul > li > a, .nav-sidebar-menu > ul > li.disabled {
+  border: 1px solid @osbBorder;
+  margin: 0 -15px -1px -15px;
+  padding: 8px 14px;
+}
+
+.nav-sidebar-menu > ul > li.disabled {
+  background: @osbBackground;
+}
+
+.nav-sidebar-menu > ul > li:first-child > a {
+  .border-top-radius(6px);
+}
+
+.nav-sidebar-menu > ul > li:last-child > a {
+  .border-bottom-radius(6px);
+}
+
+.nav-sidebar-body {
+  .column(9.5);
+  .push(0.5);
+}
+
+
+// ================ Forms
+
+.control-label {
+  color: @osbCopper;	// (BountyOSS specific)
+}
+
+.form-horizontal-condensed .control-group {
+  margin-bottom: 0px;
+}
+
+.validation-errors-summary .error-count {
+  display: none;
+}
+
+.validation-errors-summary ul li {
+  font-style: italic;
+  color: red;
+  display: block;
+}
+
+legend .action {
+  display: none;
+}
+
+
+// ================ Tables
+
+/* Mining Bar */
+.dataseq .data-mining-bar {
+  position: relative;
+  margin-bottom: 0.25em;
+  height: 1em;
+}
+
+.dataseq .data-mining-bar .caption {
+  font-size: 120%;
+  color: @osbCopper;	// (BountyOSS specific)
+  font-weight: bold;
+}
+
+.dataseq > .data-mining-bar {
+  height: auto;
+  min-height: 1em;
+}
+
+.dataseq .data-mining-bar .total-items {
+  color: @gray;
+  font-size: 80%;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+// No need to use 'nth-child' (which may not work in all browsers)
+// since the Lisp code will put this class on alternate rows for us.
+.table-striped-row {
+
+  background-color: @tableBackgroundAccent;
+}
+
+
+// ================ BountyOSS specific
+
+.text {
+  max-width: 660px;
+}
+
+#main-menu {
+  margin-top: 20px;
+}
+
+.nav > li > a:hover {
+  text-decoration: none;
+  background-color: @osbBackground;
+}
+
+#why-bountyoss {
+  .hero-unit;
+}
+
+a.misc-button {
+  margin-left: 160px;
+  margin-top: 5px;
+  margin-bottom: 5px;  
+}
+
+.explanation
+{
+  font-family: arial, helvetica, sans-serif;
+  font-size: 90%;
+  color: #606060;
+  padding-bottom: 9px;
+/*  max-width: 440px; */
+}
+
+.osb-footer table {
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  table-layout: fixed;
+  font-size: small;
+  font-family: arial, helvetica, sans-serif;
+  color: @linkColor;
+}

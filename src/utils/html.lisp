@@ -7,6 +7,7 @@
           render-extra-tags
 	  with-extra-tags
 	  render-link
+	  render-link-button
           render-button
           render-form-and-button
 	  render-checkbox
@@ -24,7 +25,8 @@
           render-message
           send-script
           with-table
-          render-definition-list))
+          render-definition-list
+	  append-css-classes))
 
 (declaim (special *action-string*))	;early
 
@@ -72,10 +74,8 @@ headers on top and three on the bottom. It uses
                                     (format nil ,submit-fn
                                             (url-encode (or ,action-code ""))
                                             (session-name-string-pair))))
-                (with-extra-tags
-                  (htm (:fieldset
-                        ,@body
-                        (:input :name *action-string* :type "hidden" :value ,action-code))))))
+                ,@body
+		(:input :name *action-string* :type "hidden" :value ,action-code)))
        (log-form ,action-code :id ,id :class ,class))))
 
 (defun render-link (action label &key (ajaxp t) id class title render-fn
@@ -110,17 +110,50 @@ location)."
                    label)))
     (log-link label action-code :id id :class class)))
 
-(defun render-button (name  &key (value (humanize-name name)) id (class "submit") disabledp)
+(defun render-link-button (action label &key kind size class (ajaxp t))
+  "Like RENDER-LINK, but styles the link as a button with Bootstrap.
+
+'kind' - one of :default (or nil), :primary, :info, :success, :warning,
+:danger, :inverse, or :link.  (See the Bootstrap docs for the meanings.)
+'size' - one of :default (or nil), :large, :small, :mini.
+'class' - any additional CSS class you want on the link."
+  (render-link action label
+	       :class (bootstrap-button-class class kind size)
+	       :ajaxp ajaxp))
+
+(defun bootstrap-button-class (class kind size)
+  (append-css-classes "btn" class
+		      (ecase kind
+			((:default nil) nil)
+			(:primary "btn-primary")
+			(:info "btn-info")
+			(:success "btn-success")
+			(:warning "btn-warning")
+			(:danger "btn-danger")
+			(:inverse "btn-inverse")
+			(:link "btn-link"))
+		      (ecase size
+			((:default nil) nil)
+			(:large "btn-large")
+			(:small "btn-small")
+			(:mini "btn-mini"))))
+
+(defun render-button (name  &key (value (humanize-name name)) id kind size class
+			    disabledp)
   "Renders a button in a form.
 
 'name' - name of the html control. The name is attributized before
 being rendered.
 'value' - a value on html control. Humanized name is default.
 'id' - id of the html control. Default is nil.
-'class' - a class used for styling. By default, \"submit\".
+'kind' - one of :default (or nil), :primary, :info, :success, :warning,
+:danger, :inverse, or :link.  (See the Bootstrap docs for the meanings.)
+'size' - one of :default (or nil), :large, :small, :mini.
+'class' - any additional CSS class you want on the link.
 'disabledp' - button is disabled if true."
   (with-html
-    (:input :name (attributize-name name) :type "submit" :id id :class class
+    (:input :name (attributize-name name) :type "submit" :id id
+	    :class (bootstrap-button-class class kind size)
 	    :value value :disabled (and disabledp "disabled")
 	    :onclick "disableIrrelevantButtons(this);")))
 
@@ -268,7 +301,7 @@ for the value.
                                                                   (equalp (cdr i) selected-value))
                                                          "checked")
 			       :disabled (and disabledp "disabled")))
-                  (:span (str (format nil "~A&nbsp;" (car i))))))))
+                  (str (format nil "~A&nbsp;" (car i)))))))
 
 (defun render-close-button (close-action &optional (button-string "(Close)"))
   "Renders a close button. If the user clicks on the close button,
@@ -334,9 +367,12 @@ used instead of the default 'Close'."
 'class' - a class used for styling. By default, \"textarea\".
 'disabledp' - input is disabled if true."
   (with-html
-      (:textarea :name (attributize-name name) :id id
-		 :rows rows :cols cols :class class :disabled (and disabledp "disabled")
-		 (esc (or value "")))))
+    ;; Bootstrap ignores the "cols" attribute, instead requiring us to use one of
+    ;; the "spanN" classes.
+    (:textarea :class (format nil "span~D" (ceiling cols 8))
+	       :name (attributize-name name) :id id
+	       :rows rows :class class :disabled (and disabledp "disabled")
+	       (esc (or value "")))))
 
 (defun render-list (seq &key render-fn (orderedp nil) id class
 		    (empty-message "There are no items in the list.")

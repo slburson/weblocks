@@ -8,7 +8,7 @@
   available.")
 
 (defun render-menu (options &key selected-pane header (container-id (gen-id)) (base "")
-                    ordered-list-p (empty-message *menu-empty-message*)
+                    div-class list-class ordered-list-p (empty-message *menu-empty-message*)
                     disabled-pane-names)
   "Renders a menu snippet based on given options and selected
 option. An option may be a dotted pair of a label and \(URL to link to
@@ -21,7 +21,7 @@ CONTAINER-ID is provided, it is used as the basis of DOM IDs for the
 menu and each menu item generated with `unattributized-name'. If a
 given pane name is found in `disabled-pane-names', it's rendered in
 the navigation as disabled."
-  (flet ((render-menu-items (&optional orderedp)
+  (flet ((render-menu-items ()
            (loop
               for option in options
               for item-number from 1
@@ -39,42 +39,35 @@ the navigation as disabled."
                                                      :key #'attributize-name
                                                      :test #'string-equal)))
                           (pane-class (cond
-                                        (pane-selected-p "selected-item")
-                                        (pane-disabled-p "disabled-item"))))
+                                        (pane-selected-p "active")
+                                        (pane-disabled-p "disabled"))))
                      (if (functionp label)
-                       (funcall label)
+			 (funcall label)
                        (with-html
                          (:li :id (unattributized-name (format nil "~A-~A" container-id label)
                                                        'menu-item)
-                              :class pane-class
-                              (:span :class (concatenate 'string
-                                                         "item-wrapper"
-                                                         (when orderedp
-                                                           (format nil " item-number-~A" item-number)))
-                                     (etypecase target
-                                       (string
-                                        (if (or pane-selected-p pane-disabled-p)
-                                          (htm (:span :class "selected" (str label)))
-                                          (htm (:a :href
-                                                   (concatenate 'string
-                                                                (string-right-trim "/" base)
-                                                                "/"
-                                                                (string-left-trim "/" target))
-                                                   (str label)))))
-                                       (function
-                                        (funcall target label pane-selected-p))))))))))))
-;;                                      (render-link target label)))))))))))
+                              :class (append-css-classes pane-class
+							 (and ordered-list-p
+							      (format nil "item-number-~A"
+								      item-number)))
+                              (etypecase target
+				(string
+				 (if pane-disabled-p
+				     (htm "&nbsp;")
+				   (htm (:a :href
+					    (concatenate 'string
+							 (string-right-trim "/" base)
+							 "/"
+							 (string-left-trim "/" target))
+					    (str label)))))
+				(function
+				 (funcall target label pane-selected-p)))))))))))
     (with-html
-      (:div :class "view menu" ; should probably be 'rendered-menu' but I'm not going to be
-                               ; the one adapting the CSS to this.
-            :id (unattributized-name container-id 'menu)
-            (with-extra-tags
-              (when header
-                (htm (:h1 (str header))))
-              (if (null options)
-                (htm
-                 (:div :class "empty-menu" (str empty-message)))
-                (if ordered-list-p
-                  (htm (:ol (render-menu-items t)))
-                  (htm (:ul (render-menu-items))))))))))
+      (when header
+	(htm (:h4 (str header))))
+      (if (null options)
+	  (htm (:div :class "empty-menu" (str empty-message)))
+	(if ordered-list-p
+	    (htm (:ol :class list-class (render-menu-items)))
+	  (htm (:ul :class list-class (render-menu-items))))))))
 

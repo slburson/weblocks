@@ -44,6 +44,26 @@
 			       (str label)))
 			(render-link row-action label :ajaxp nil)))))))))
 
+(defmethod with-table-view-header ((view table-view) obj (widget datagrid)
+				   header-fn rows-fn
+				   &rest args &key summary &allow-other-keys)
+  (if (and (dataseq-allow-drilldown-p widget)
+	   (or (dataseq-on-drilldown widget) (dataseq-drilldown-link-url-fn widget)))
+      ;; &&& Hmm -- hate to copy this here just to add a CSS class
+      (with-html
+      ;; &&& Need option for condensed
+	(:table :class "table table-condensed table-hover"
+		:summary (or summary (table-view-default-summary view))
+		;; See dataseq-render-mining-bar
+		;(when (view-caption view)
+		;  (htm (:caption (str (view-caption view)))))
+		(htm
+		 (:thead
+		  (apply header-fn view (car obj) widget args))
+		 (:tbody
+		  (apply rows-fn view obj widget args)))))
+    (call-next-method)))
+
 ;;; Drilldown row
 (defmethod with-table-view-body-row ((view table-view) obj (widget datagrid) &rest args
 				     &key alternp &allow-other-keys)
@@ -62,8 +82,7 @@
 				      (object-id obj)))))
 	(safe-apply (sequence-view-row-prefix-fn view) view obj args)
 	(with-html
-	  (:tr :class (append-css-classes "drillable"
-					  (and alternp "altern")
+	  (:tr :class (append-css-classes (and alternp "table-striped-row")
 					  (and drilled-down-p "drilled-down"))
 	       :onclick (if (dataseq-drilldown-link-url-fn widget)
 			    (format nil "window.location.assign(\"~A\");"

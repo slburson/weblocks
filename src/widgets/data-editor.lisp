@@ -79,15 +79,14 @@
   "Show the Modify and Close buttons as permitted by OBJ."
   (declare (ignore data))
   (with-html
-    (:div :class "submit"
-	  (render-link (make-action
-			(f_% (setf (dataform-ui-state obj) :form)))
-		       "Modify"
-		       :class "modify")
+    (:div :class "form-actions"
+	  (render-link-button (make-action
+				(f_% (setf (dataform-ui-state obj) :form)))
+			      "Edit" :kind ':primary)
 	  (when (and (dataform-allow-close-p obj)
 		     (dataform-on-close obj))
 	    (str "&nbsp;")
-	    (render-link (make-action
-			  (f_% (funcall (dataform-on-close obj) obj)))
-			 "Close"
-			 :class "close")))))
+	    (render-link-button (make-action
+				  (f_% (funcall (dataform-on-close obj) obj)))
+				"Close" :kind ':inverse)))))
+

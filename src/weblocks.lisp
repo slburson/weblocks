@@ -112,3 +112,6 @@ composite."
 
 ;;; This turns off a regex optimization that eats A LOT of memory
 (setq cl-ppcre:*use-bmh-matchers* nil)
+
+;;; The new standard.  Needed for Twitter Bootstrap.
+(setf (cl-who:html-mode) ':html5)

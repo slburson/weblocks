@@ -42,6 +42,11 @@
   (:documentation "Treats values as predicates and presents them as a
   checkbox."))
 
+(defmethod render-form-presentation ((presentation checkbox-presentation)
+				     label-fn value-fn wrap-fn)
+  (declare (ignore value-fn))
+  (funcall wrap-fn (curry label-fn t)))
+
 (defmethod render-view-field-value (value (presentation checkbox-presentation)
 				    (field form-view-field) (view form-view) widget obj
 				    &rest args &key intermediate-values field-info &allow-other-keys)

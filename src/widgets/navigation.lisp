@@ -17,7 +17,7 @@
    (header :accessor navigation-header
 	   :initarg :header
 	   :initform nil
-	   :documentation "A heading that will be rendered in a <h1> tag")
+	   :documentation "A heading for the menu.")
    (hidden-panes :accessor navigation-hidden-panes
 		 :initarg :hidden-panes
 		 :initform nil
@@ -42,11 +42,37 @@
 		   :initform nil
 		   :documentation "Panes in this list are rendered as
 		   visible but disabled. This feature can be useful for
-		   section labels within a menu, for example."))
+		   section labels within a menu, for example.")
+   (menu-style :accessor navigation-menu-style
+	       :initarg :menu-style
+	       :initform '(:sidebar :left)
+	       ;; Many styles are possible with Bootstrap.  Currently implemented:
+	       ;;  (:sidebar :left)
+	       ;;  (:tabs :top)
+	       ;;  (:navbar :top)  [defaults to static]
+	       ;;  (:navbar :top :fixed)
+	       :documentation "A list of a style type, a position, and zero or more
+	       options.  The style type is one of ':sidebar, ':tabs, or ':navbar.
+	       The position is one of ':left, ':top, ':right, or ':bottom.  The
+	       navbar style takes the ':fixed option."))
   (:documentation "The navigation widget can act as a menu controls, a
   tabbed control, etc. It is a static-selector that also knows what its
   pane names are, so it can render a menu, set a page title, and
   contribute to navigation breadcrumbs."))
+
+(defmethod initialize-instance :after ((nav navigation) &rest args)
+  (declare (ignore args))
+  (check-navigation-menu-style nav))
+
+(defgeneric check-navigation-menu-style (nav)
+  (:method ((nav navigation))
+    (let ((style (navigation-menu-style nav)))
+      (unless (member (first style) '(:sidebar :tabs :navbar))
+	(error "The first element of the menu-style of a navigation must be one of :sidebar, :tabs, or :navbar; not ~S"
+	       (car style)))
+	     (unless (member (second style) '(:left :top :right :bottom))
+	       (error "The second element of the menu-style of a navigation must be one of :left, :right, :top, or :bottom; not ~S"
+		      (second style))))))
 
 (defwidget lazy-navigation (navigation)
   ()
@@ -91,19 +117,58 @@ may be NIL in which case the default pane name is provided."
            :disabled-pane-names (navigation-disabled-panes obj)
 	   menu-args)))
 
-(defmethod render-widget-body ((obj navigation) &rest args)
-  (apply #'render-navigation-menu obj args))
+(defgeneric render-navigation-body (nav &rest args)
+  (:method ((nav navigation) &rest args)
+    (when (navigation-render-content-p nav)
+      (with-html 
+	(mapc (lambda (kid) (apply #'render-widget kid args))
+	      (widget-children nav :selector))))))
 
+(defgeneric render-navigation-styled (nav style-kind style-pos &rest args)
+  (:method ((nav navigation) (style-kind (eql ':sidebar)) (style-pos (eql ':left)) &rest args)
+    (with-html
+      (:div :class "container-fluid"
+	    (:div :class "row-fluid"
+		  (:div :class "nav-sidebar-menu"
+			(apply #'render-navigation-menu nav :menu-args
+			       '(:list-class "nav nav-list") args))
+		  (:div :class "nav-sidebar-body"
+			(apply #'render-navigation-body nav args))))))
+  (:method ((nav navigation) (style-kind (eql ':sidebar)) (style-pos (eql ':right)) &rest args)
+    (with-html
+      (:div :class "container-fluid"
+	    (:div :class "row-fluid"
+		  (:div :class "nav-sidebar-body"
+			(apply #'render-navigation-body nav args))
+		  (:div :class "nav-sidebar-menu"
+			(apply #'render-navigation-menu nav :menu-args
+			       '(:list-class "nav nav-list") args))))))
+  (:method ((nav navigation) (style-kind (eql ':tabs)) style-pos &rest args)
+    (ecase style-pos
+      ((:left :right :top)
+	 (with-html
+	   (:div :class (append-css-classes "tabbable" (case style-pos
+							 (:left "tabs-left")
+							 (:right "tabs-right")))
+		 (apply #'render-navigation-menu nav :menu-args '(:list-class "nav nav-tabs") args)
+		 (:div :class "tab-content"
+		       (:div :class "tab-pane active"
+			     (apply #'render-navigation-body nav args))))))
+      ((:bottom)
+	 (with-html
+	   (:div :class "tabbable tabs-bottom"
+		 (:div :class "tab-content"
+		       (:div :class "tab-pane active"
+			     (apply #'render-navigation-body nav args)))
+		 (apply #'render-navigation-menu nav :menu-args '(:list-class "nav nav-tabs") args)))))))
+
+(defmethod render-widget-body ((obj navigation) &rest args)
+  (let ((style (navigation-menu-style obj)))
+    (with-html
+      (apply #'render-navigation-styled obj (first style) (second style) args))))
 
 (defmethod render-widget-children ((obj navigation) &rest args)
-    (when (navigation-render-content-p obj)
-      (with-html 
-        (:div :class "navigation-body"
-	    (mapc (lambda (obj) (apply #'render-widget obj args))
-                  (widget-children obj :selector))))))
-
-(defmethod per-class-dependencies append ((obj navigation))
-  (list (make-local-dependency :stylesheet "menu")))
+  (declare (ignore args)))
 
 (defmethod page-title ((obj navigation))
   (navigation-pane-name-for-token obj (static-selector-current-pane obj)))

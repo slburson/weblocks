@@ -61,6 +61,10 @@
   ((media :accessor stylesheet-media :initarg :media :initform nil))
   (:documentation "A CSS stylesheet dependency"))
 
+(defclass less-stylesheet-dependency (dependency url-dependency-mixin)
+  ((media :accessor stylesheet-media :initarg :media :initform nil))
+  (:documentation "A Less stylesheet dependency."))
+
 (defclass script-dependency (dependency url-dependency-mixin)
   ()
   (:documentation "A JavaScript file dependency"))
@@ -151,6 +155,12 @@ when new dependencies appeared in AJAX page updates.")
 	   :href (dependency-url obj)
 	   :media (stylesheet-media obj))))
 
+(defmethod render-dependency-in-page-head ((obj less-stylesheet-dependency))
+  (with-html
+    (:link :rel "stylesheet/less" :type "text/css"
+	   :href (dependency-url obj)
+	   :media (stylesheet-media obj))))
+
 (defmethod render-dependency-in-page-head ((obj script-dependency))
   (with-html
     (:script :src (dependency-url obj) :type "text/javascript" "")))
@@ -223,6 +233,9 @@ returns a dependency object."
 	  (:stylesheet (make-instance 'stylesheet-dependency
 				      :url virtual-path :media media
 				      :local-path physical-path))
+	  (:less-stylesheet (make-instance 'less-stylesheet-dependency
+					   :url virtual-path :media media
+					   :local-path physical-path))
 	  (:script (make-instance 'script-dependency :url virtual-path
 				  :local-path physical-path)))))))
 

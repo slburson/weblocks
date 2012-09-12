@@ -4,7 +4,10 @@
 
 ;;;; PRESENTATION
 (defclass checkboxes-presentation (form-presentation choices-presentation-mixin)
-  ())
+  ()
+  (:documentation
+    "Allows the user to select any subset of a set of choices.  If REQUIREDP
+is true, the subset must be non-empty."))
 
 (defmethod obtain-presentation-choices ((choices-mixin checkboxes-presentation) obj)
   (mapcar (lambda (cons) (cons (car cons)
@@ -100,6 +103,6 @@
 
 ;; ; usage
 ;; 
-;;   (dressings :present-as (checkboxes :choices (f_ '(mustard onions cheese)))
+;;   (dressings :present-as (checkboxes :choices '(mustard onions cheese))
 ;;              :parse-as checkboxes)
 
