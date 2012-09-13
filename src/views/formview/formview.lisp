@@ -85,10 +85,11 @@ name of the field to inform users that the field is required.")
 	    :documentation "Contains a list of keywords that identify
 	    buttons to be rendered (by default contains :submit
 	    and :cancel).  Default form view only recognizes :submit
-	    and :cancel keywords. Each item of the list may be a cons
-	    pair, in which case CAR of the pair should be a keyword,
-	    and CDR of the pair should be a string that will be
-	    presented to the user via value of the button.")
+	    and :cancel keywords. Each item of the list may be a list,
+	    in which case the first element of the list should be a
+	    keyword, the second element of the list should be a string
+	    that will be presented to the user via value of the button,
+	    and the remaining arguments are passed to RENDER-BUTTON.")
    (satisfies :initform nil
 	      :initarg :satisfies
 	      :accessor form-view-satisfies
@@ -290,21 +291,26 @@ form-view-buttons for a given view.")
 		   (find name (form-view-buttons view)
 			 :key (lambda (item)
 				(car (ensure-list item)))))))
+	     ;; These used to be dotted pairs... maintain back compatibility.
+	     (button-value (button)
+	       (or (if (consp (cdr button)) (cadr button) (cdr button))
+		   (humanize-name (car button))))
+	     (button-options (button)
+	       (and (consp (cdr button)) (cddr button)))
 	     (render-buttons ()
 	       (let ((submit (find-button :submit)))
 		 (when submit
-		   (render-button *submit-control-name*
-				  :value (or (cdr submit)
-					     (humanize-name (car submit)))
-				  :kind ':primary))
+		   (apply #'render-button *submit-control-name*
+			  :value (button-value submit)
+			  (button-options submit)))
 		 (let ((cancel (find-button :cancel)))
 		   (when cancel
 		     (when submit
 		       (with-html (str "&nbsp;&nbsp;")))
-		     (render-button *cancel-control-name*
-				    :class "submit cancel"
-				    :value (or (cdr cancel)
-					       (humanize-name (car cancel)))))))))
+		     (apply #'render-button *cancel-control-name*
+			    :class "submit cancel"
+			    :value (button-value cancel)
+			    (button-options cancel)))))))
       (if (eq (form-view-form-style view) ':horizontal)
 	  (with-html
 	    (:div :class "form-actions"
