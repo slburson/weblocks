@@ -155,6 +155,7 @@ to render the actual value of the field. Specialize this function to
 customize the way individual fields are rendered."))
 
 (defgeneric render-view-field-value (value presentation field view widget obj &rest args)
+  (:argument-precedence-order presentation value field view widget obj)
   (:documentation "Renders 'value' obtained from 'field' using
 'presentation'. If this function requires a textual representation of
 the value, it should call 'print-view-field-value'. Specialize this
