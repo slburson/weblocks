@@ -83,7 +83,8 @@
 	(safe-apply (sequence-view-row-prefix-fn view) view obj args)
 	(with-html
 	  (:tr :class (append-css-classes (and alternp "table-striped-row")
-					  (and drilled-down-p "drilled-down"))
+					  (and drilled-down-p "drilled-down")
+					  (funcall (table-view-row-class-fn view) obj))
 	       :onclick (if (dataseq-drilldown-link-url-fn widget)
 			    (format nil "window.location.assign(\"~A\");"
 				    (funcall (dataseq-drilldown-link-url-fn widget) widget obj))

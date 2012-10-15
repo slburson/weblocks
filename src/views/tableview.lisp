@@ -31,7 +31,14 @@
 	                 rendering the header row. The function should
 	                 expect the view object, the object being
 	                 rendered, and any additional arguments passed
-	                 to the view."))
+	                 to the view.")
+   (row-class-fn :initform (constantly nil)
+		 :initarg :row-class-fn
+		 :accessor table-view-row-class-fn
+		 :documentation
+		 "A function of one argument, the object being rendered
+		 in a row; returns the CSS class for the row.  (See the
+		 Bootstrap documentation, \"Optional row classes\".)"))
   (:documentation "A view designed to present sequences of object in a
   table to the user."))
 
@@ -140,7 +147,8 @@ to modify HTML around a given row's cells.")
   (:method ((view table-view) obj widget &rest args &key alternp &allow-other-keys)
     (safe-apply (sequence-view-row-prefix-fn view) view obj args)
     (with-html
-      (:tr :class (if alternp "altern" nil)
+      (:tr :class (append-css-classes (and alternp "altern")
+				      (funcall (table-view-row-class-fn view) obj))
 	   (apply #'render-table-view-body-row view obj widget args)))
     (safe-apply (sequence-view-row-suffix-fn view) view obj args)))
 
