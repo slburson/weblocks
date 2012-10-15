@@ -92,12 +92,12 @@
       (let ((physical-path (merge-pathnames bundle-name (bundle-folder tally)))
 	    (virtual-path (puri:merge-uris (format nil "bundles/~A" bundle-name)
 					   (maybe-add-trailing-slash (compute-webapp-public-files-uri-prefix app)))))
-	(let ((keys (gzip-dependency-types* app)))
+	(let ((keys (gzip-dependency-types app)))
 	  (when (or (and (eq type 'script-dependency)
 			 (find :script keys))
 		    (and (eq type 'stylesheet-dependency)
 			 (find :stylesheet keys)))
-	    (create-gziped-dependency-file physical-path)))
+	    (create-gzipped-dependency-file physical-path)))
 	(ecase type
 	  (stylesheet-dependency
 	   (make-instance 'stylesheet-dependency

@@ -201,7 +201,7 @@ when new dependencies appeared in AJAX page updates.")
 
 (defvar *gzip-dependency-lock* (bordeaux-threads:make-lock))
 
-(defun create-gziped-dependency-file (original-path)
+(defun create-gzipped-dependency-file (original-path)
   (bordeaux-threads:with-lock-held (*gzip-dependency-lock*)
     (let ((new-path (format nil "~A.gz" original-path)))
       (gzip-file original-path new-path))))
@@ -227,8 +227,8 @@ returns a dependency object."
 	      (update-versioned-dependency-path physical-path virtual-path)))
 	  (when import-p
 	    (update-import-css-content physical-path))	  
-	  (when (find type (gzip-dependency-types* webapp))
-	    (create-gziped-dependency-file physical-path)))
+	  (when (find type (gzip-dependency-types webapp))
+	    (create-gzipped-dependency-file physical-path)))
 	(ecase type
 	  (:stylesheet (make-instance 'stylesheet-dependency
 				      :url virtual-path :media media

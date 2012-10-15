@@ -14,7 +14,7 @@
 ;;; is created with versioined name under the folder vzn, which is located under the
 ;;; same folder as the file itself. (e.g. ../pub/script/weblocks.js is copied to
 ;;; ../pub/script/vzn/weblocks.0.js) The path of the versioned file is then used for
-;;; serving replies, bundling, gziping and etc. This means you can work on the
+;;; serving replies, bundling, gzipping, etc. This means you can work on the
 ;;; original file without keep track of versions of a file at all.
 
 ;;; --JT jt@homejt.com
@@ -135,7 +135,7 @@ been modified before, its name is kept the same."
 						(maybe-add-trailing-slash (compute-webapp-public-files-uri-prefix webapp))))))))
 
 (defun update-import-css-content (import-path &key (version-types (version-dependency-types* (current-webapp)))
-				  (gzip-types (gzip-dependency-types* (current-webapp))))
+				  (gzip-types (gzip-dependency-types (current-webapp))))
   (let ((urls (extract-import-urls (slurp-file import-path))))
     (with-file-write (stream import-path)
       (dolist (url (nreverse urls))
@@ -146,7 +146,7 @@ been modified before, its name is kept the same."
 		  (multiple-value-setq (physical-path virtual-path)
 		    (update-versioned-dependency-path physical-path virtual-path)))
 		(when (find :stylesheet gzip-types)
-		  (create-gziped-dependency-file physical-path))
+		  (create-gzipped-dependency-file physical-path))
 		(write-import-css (puri:uri virtual-path) stream))
 	      (write-import-css url stream)))))))
 

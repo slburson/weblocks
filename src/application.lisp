@@ -133,16 +133,15 @@
                              :initarg :version-dependency-types
 			     :initform '(:stylesheet :script)
 			     :documentation "This enables versioning of css, js files. The purpose
-       of versioning is to serve modified static files that have been cached permanently, and gziping.
-       Anytime you modified the original (unversioned) css or js file, new versioned (maybe gziped)
+       of versioning is to serve modified static files that have been cached permanently, and gzipping.
+       Anytime you modified the original (unversioned) css or js file, new versioned (maybe gzipped)
        file will get created. This way, you only need to work on the unversioned file and not keep
        track of the versioned ones. When debug is t, versioning is turned off.")
    (gzip-dependency-types :type list
                           :accessor gzip-dependency-types
                           :initarg :gzip-dependency-types
 			  :initform '(:stylesheet :script)
-			  :documentation "This enables gzipping of css, js files.
-                                          When debug is on, gzip is turned off.")
+			  :documentation "This enables gzipping of css, js files.")
    (init-user-session :type (or symbol function)
                       :accessor weblocks-webapp-init-user-session
                       :initarg :init-user-session
@@ -186,8 +185,7 @@ layout and dependencies running on the same server."))
 (def-debug-p-slot-readers
     weblocks-webapp-public-files-cache-time
     version-dependency-types
-    bundle-dependency-types
-    gzip-dependency-types)
+    bundle-dependency-types)
 
 ;; Slash-normalizing accessors
 ;;

@@ -143,7 +143,7 @@ declared AUTOSTART."
 	 (let ((virtual-folder (maybe-add-trailing-slash app-pub-prefix))
 	       (physical-folder (compute-webapp-public-files-path app)))
 	   (send-cache-rules (weblocks-webapp-public-files-cache-time app))
-	   (setf content-type (send-gzip-rules (gzip-dependency-types* app)
+	   (setf content-type (send-gzip-rules (gzip-dependency-types app)
 					       script-name request virtual-folder physical-folder))
 	   (return-from weblocks-dispatcher
 	     (funcall (create-folder-dispatcher-and-handler virtual-folder physical-folder content-type)
