@@ -20,40 +20,26 @@
 
 // Accent colors
 // -------------------------
-// 
-@blue:                  desaturate(#049cdb, 10%);
-@blueDark:              desaturate(#0064cd, 10%);
-@green:                 desaturate(#46a546, 10%);
-@red:                   desaturate(#9d261d, 10%);
-@yellow:                desaturate(#ffc40d, 10%);
-@orange:                desaturate(#f89406, 10%);
-@pink:                  desaturate(#c3325f, 10%);
-@purple:                desaturate(#7a43b6, 10%);
+@blue:                  #049cdb;
+@blueDark:              #0064cd;
+@green:                 #46a546;
+@red:                   #9d261d;
+@yellow:                #ffc40d;
+@orange:                #f89406;
+@pink:                  #c3325f;
+@purple:                #7a43b6;
 
-
-// BountyOSS colors
-@osbGreen:		#51bd77;
-@osbGreenDark:		darken(@osbGreen, 7%);
-@osbGreenDarker:	darken(@osbGreen, 13%);
-@osbGreenLight:		lighten(@osbGreen, 7%);
-@osbGreenPastel:	lighten(desaturate(@osbGreen, 20%), 12%);
-@osbGreenBackground:	lighten(desaturate(@osbGreen, 6%), 35%);
-@osbCopper:		#c5725d;
-@osbBackground:		#f4f4ee;
-@osbAccentBackground:	darken(@osbBackground, 4%);
-@osbBorder:		darken(@osbBackground, 20%);
 
 // Scaffolding
 // -------------------------
-@bodyBackground:        @osbBackground;
+@bodyBackground:        @white;
 @textColor:             @grayDark;
 
 
 // Links
 // -------------------------
-@linkColor:             @osbGreenDark;
+@linkColor:             #08c;
 @linkColorHover:        darken(@linkColor, 15%);
-@linkColorVisited:	@osbGreenPastel;
 
 
 // Typography
@@ -71,14 +57,12 @@
 @headingsFontWeight:    bold;    // instead of browser default, bold
 @headingsColor:         inherit; // empty to use BS default, @textColor
 
-
 // Tables
 // -------------------------
 @tableBackground:                   transparent; // overall background-color
 @tableBackgroundAccent:             #f9f9f9; // for striping
-@tableBackgroundHover:              @osbGreenBackground; // for hover
+@tableBackgroundHover:              #f5f5f5; // for hover
 @tableBorder:                       #ddd; // table and cell border
-
 
 // Buttons
 // -------------------------
@@ -89,17 +73,17 @@
 @btnPrimaryBackground:              @linkColor;
 @btnPrimaryBackgroundHighlight:     spin(@btnPrimaryBackground, 20%);
 
-@btnInfoBackground:                 desaturate(#5bc0de, 10%);
-@btnInfoBackgroundHighlight:        desaturate(#2f96b4, 10%);
+@btnInfoBackground:                 #5bc0de;
+@btnInfoBackgroundHighlight:        #2f96b4;
 
-@btnSuccessBackground:              desaturate(#62c462, 10%);
-@btnSuccessBackgroundHighlight:     desaturate(#51a351, 10%);
+@btnSuccessBackground:              #62c462;
+@btnSuccessBackgroundHighlight:     #51a351;
 
-@btnWarningBackground:              desaturate(lighten(@orange, 15%), 10%);
-@btnWarningBackgroundHighlight:     desaturate(@orange, 10%);
+@btnWarningBackground:              lighten(@orange, 15%);
+@btnWarningBackgroundHighlight:     @orange;
 
-@btnDangerBackground:               desaturate(#ee5f5b, 10%);
-@btnDangerBackgroundHighlight:      desaturate(#bd362f, 10%);
+@btnDangerBackground:               #ee5f5b;
+@btnDangerBackgroundHighlight:      #bd362f;
 
 @btnInverseBackground:              #444;
 @btnInverseBackgroundHighlight:     @grayDarker;
@@ -121,12 +105,11 @@
 @dropdownDividerBottom:         @white;
 
 @dropdownLinkColor:             @grayDark;
-
 @dropdownLinkColorHover:        @white;
-@dropdownLinkBackgroundHover:   @dropdownLinkBackgroundActive;
-
 @dropdownLinkColorActive:       @dropdownLinkColor;
+
 @dropdownLinkBackgroundActive:  @linkColor;
+@dropdownLinkBackgroundHover:   @dropdownLinkBackgroundActive;
 
 
 
@@ -161,6 +144,11 @@
 @hrBorder:                @grayLighter;
 
 
+// Horizontal forms & lists
+// -------------------------
+@horizontalComponentOffset:       180px;
+
+
 // Wells
 // -------------------------
 @wellBackground:                  #f5f5f5;
@@ -171,12 +159,12 @@
 @navbarCollapseWidth:             979px;
 
 @navbarHeight:                    40px;
-@navbarBackground:                darken(@navbarBackgroundHighlight, 5%);
 @navbarBackgroundHighlight:       #ffffff;
+@navbarBackground:                darken(@navbarBackgroundHighlight, 5%);
 @navbarBorder:                    darken(@navbarBackground, 12%);
 
-@navbarText:                      @gray;
-@navbarLinkColor:                 @gray;
+@navbarText:                      #777;
+@navbarLinkColor:                 #777;
 @navbarLinkColorHover:            @grayDark;
 @navbarLinkColorActive:           @gray;
 @navbarLinkBackgroundHover:       transparent;
@@ -213,7 +201,7 @@
 
 // Hero unit
 // -------------------------
-@heroUnitBackground:              darken(saturate(@bodyBackground, 8%), 10%);
+@heroUnitBackground:              @grayLighter;
 @heroUnitHeadingColor:            inherit;
 @heroUnitLeadColor:               inherit;
 
