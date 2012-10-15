@@ -79,7 +79,7 @@ name of the field to inform users that the field is required.")
 	   :documentation "If set to true, renders appropriate
 	   JavaScript to focus on the first element of the form once
 	   the form is loaded. This slot is set to false by default.")
-   (buttons :initform (list :submit :cancel)
+   (buttons :initform '((:submit "Submit" :kind :primary) :cancel)
 	    :initarg :buttons
 	    :accessor form-view-buttons
 	    :documentation "Contains a list of keywords that identify
