@@ -59,11 +59,13 @@ names for your classes and sequences.  This function will give them to you."
 (defmethod open-store ((store-type (eql :clsql)) &rest args)
   (setf *default-caching* nil)
   (setf *default-store* (apply #'make-instance 'fluid-database
-			       :connection-spec args)))
+			       :connection-spec args))
+  (setf *default-database* *default-store*))
 
 (defmethod close-store ((store database))
   (when (eq *default-store* store)
-    (setf *default-store* nil))
+    (setf *default-store* nil)
+    (setf *default-database* nil))
   (disconnect :database store))
 
 (defmethod clean-store ((store database))
