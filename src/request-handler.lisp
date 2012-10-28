@@ -201,6 +201,10 @@ customize behavior."))
               (update-state-from-location-hash w hash))
            (get-widgets-by-type 'location-hash-dependent)))))
 
+(defvar *cache-page-p* nil
+  "Bound to T around rendering.  Anything that generates dynamic content can
+set it to NIL to disable caching of the current page.")
+
 (defun update-widget-tree ()
   (let ((*tree-update-pending* t)
         (depth 0)
@@ -269,14 +273,17 @@ customize behavior."))
   ; stylesheet dependencies.
   (webapp-update-thread-status "Handling normal request [tree shakedown]")
   (bordeaux-threads:with-lock-held ((session-lock))
-    (handler-case (timing "tree shakedown"
-                    (update-widget-tree))
-      (http-not-found () (return-from handle-normal-request
-                                      (page-not-found-handler app))))
+    (let ((*cache-page-p* t))
+      (handler-case (timing "tree shakedown"
+		      (update-widget-tree))
+	(http-not-found () (return-from handle-normal-request
+					(page-not-found-handler app))))
 
-    (webapp-update-thread-status "Handling normal request [rendering widgets]")
-    (timing "widget tree rendering"
-      (render-widget (root-widget))))
+      (webapp-update-thread-status "Handling normal request [rendering widgets]")
+      (timing "widget tree rendering"
+	(render-widget (root-widget)))
+      (unless *cache-page-p*
+	(no-cache))))
   ; set page title if it isn't already set
   (when (and (null *current-page-description*)
              (last (all-tokens *uri-tokens*)))

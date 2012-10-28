@@ -50,8 +50,8 @@ page may display a relevant message, if necessary."
 	     (hunchentoot::create-random-string 10 36)))))
 
 (defun make-action (action-fn &optional (action-code (generate-action-code)))
-  "Coverts a function into an action that can be rendered into HTML. A
-unique, hard to guess string is generated for the function, and a
+  "Converts a function into an action that can be rendered into HTML. A
+unique, hard to guess string is generated for the function, and the
 function is added to the session hashtable under this string. The
 string is then returned. When later requests come in,
 'get-request-action' machinery determines if the action string that
@@ -69,6 +69,7 @@ default), the user will be vulnerable to an attack where a malicious
 attacker can attempt to guess a dangerour action id and send the user
 a link to it. Only use guessable action codes for GET actions."
   (setf (webapp-session-value action-code) action-fn)
+  (setq *cache-page-p* nil)
   action-code)
 
 (defun function-or-action->action (function-or-action)
