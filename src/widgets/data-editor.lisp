@@ -85,7 +85,7 @@
 			      "Edit" :kind ':primary)
 	  (when (and (dataform-allow-close-p obj)
 		     (dataform-on-close obj))
-	    (str "&nbsp;")
+	    (str "&nbsp;&nbsp;")
 	    (render-link-button (make-action
 				  (f_% (funcall (dataform-on-close obj) obj)))
 				"Close" :kind ':inverse)))))

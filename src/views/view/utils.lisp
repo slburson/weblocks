@@ -193,7 +193,7 @@ type field-info."
   (declare (optimize safety))
   (assert (or (view-field-slot-name field)
 	      (slot-boundp field 'reader))
-	  nil "Either the field must represent a slot, or it's READER slot must be bound.")
+	  nil "Either the field must represent a slot, or its READER slot must be bound.")
   (let* ((reader-bound-p (slot-boundp field 'reader))
 	 (reader (if reader-bound-p
 		     (view-field-reader field)
