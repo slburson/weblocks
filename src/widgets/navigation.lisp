@@ -49,6 +49,7 @@
 	       ;; Many styles are possible with Bootstrap.  Currently implemented:
 	       ;;  (:sidebar :left)
 	       ;;  (:tabs :top)
+	       ;; Planned but not yet implemented:
 	       ;;  (:navbar :top)  [defaults to static]
 	       ;;  (:navbar :top :fixed)
 	       :documentation "A list of a style type, a position, and zero or more
