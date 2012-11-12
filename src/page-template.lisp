@@ -64,8 +64,7 @@ page HTML (title, stylesheets, etc.).  Can be overridden by subclasses"))
                             (compact-dependencies (append (webapp-application-dependencies)
                                                           *page-dependencies*)))))
     (with-html-output (*weblocks-output-stream* nil :prologue t)
-      (:html :xmlns "http://www.w3.org/1999/xhtml"
-	     (:head
+      (:html (:head
 	      (:title (str (application-page-title app)))
 	      (render-page-headers app)
 	      (mapc #'render-dependency-in-page-head all-dependencies))
@@ -86,7 +85,7 @@ page HTML (title, stylesheets, etc.).  Can be overridden by subclasses"))
    this function renders the current content type."
   (declare (special *current-page-headers*))
   (with-html 
-    (:meta :http-equiv "Content-type" :content *default-content-type*)
+    (:meta :charset "UTF-8")
     (awhen (application-page-description app)
       (htm (:meta :name "description" :value it)))
     (awhen (application-page-keywords app)
