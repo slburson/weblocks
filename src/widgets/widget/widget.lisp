@@ -98,6 +98,11 @@ inherits from 'widget' if no direct superclasses are provided."
 	             the widget body. The function should expect the
 	             widget as well as any additional arguments passed
 	             to the widget.")
+   (title-fn :initform nil
+	     :initarg :title-fn
+	     :accessor widget-title-fn
+	     :documentation "If nonnull, a function of one argument,
+	     the widget, which can return either a title string or nil.")
    (rendered-p :initform nil
 	       :accessor widget-rendered-p
 	       :documentation "Used internally to keep from marking
@@ -308,7 +313,8 @@ children of w (e.g. may be rendered when w is rendered).")
   set the page title should have a method defined. If multiple widgets
   provide a page title, one deepest in the widget tree (most specific)
   will be chosen.")
-  (:method ((obj widget)) nil)
+  (:method ((obj widget))
+    (safe-funcall (widget-title-fn obj) obj))
   (:method ((obj string)) nil)
   (:method ((obj function)) nil)
   (:method ((obj symbol)) nil))
@@ -625,12 +631,13 @@ Slots will be copied shallowly except for CHILDREN."
 
 
 ;;; A convenience macro for those who like to use flows.
-(defmacro make-flow-widget ((widget-var) &body body)
+(defmacro make-flow-widget ((widget-var &rest widget-options) &body body)
   "Creates and returns a widget that runs a flow.  The WIDGET-VAR is bound
 to a second widget, which is a child of the one returned, and supplied to
-WITH-FLOW along with BODY."
+WITH-FLOW along with BODY.  WIDGET-OPTIONS, if supplied, are passed to
+MAKE-INSTANCE."
   (let ((w-var (gensym "W-")))
-    `(let ((,w-var (make-instance 'widget))
+    `(let ((,w-var (make-instance 'widget . ,widget-options))
 	   (,widget-var (make-instance 'widget)))
        (setf (widget-children ,w-var) (list ,widget-var))
        ;; This will run to the first 'yield', replacing the child widget, and return here.

@@ -7,17 +7,17 @@
 
 .nav-sidebar-menu {
   .column(2);
-  background: @osbAccentBackground;
+  background: @btnBackgroundHighlight;
 }
 
 .nav-sidebar-menu > ul > li > a, .nav-sidebar-menu > ul > li.disabled {
-  border: 1px solid @osbBorder;
+  border: 1px solid @tableBorder;
   margin: 0 -15px -1px -15px;
   padding: 8px 14px;
 }
 
 .nav-sidebar-menu > ul > li.disabled {
-  background: @osbBackground;
+  background: @bodyBackground;
 }
 
 .nav-sidebar-menu > ul > li:first-child > a {
@@ -37,14 +37,15 @@
 // ================ Forms
 
 .control-label {
-  color: @osbCopper;	// (BountyOSS specific)
+  color: @blueDark;
 }
 
 .form-horizontal-condensed .control-group {
   margin-bottom: 0px;
 }
 
-.validation-errors-summary .error-count {
+.validation-errors-summary .error-count,
+.validation-errors-summary .field-validation-errors {
   display: none;
 }
 
@@ -56,6 +57,11 @@
 
 legend .action {
   display: none;
+}
+
+.control-group .help-inline {
+  margin-left: 160px;
+  font-style: italic;
 }
 
 
@@ -70,7 +76,7 @@ legend .action {
 
 .dataseq .data-mining-bar .caption {
   font-size: 120%;
-  color: @osbCopper;	// (BountyOSS specific)
+  color: @blueDark;
   font-weight: bold;
 }
 
@@ -95,46 +101,14 @@ legend .action {
 }
 
 
-// ================ BountyOSS specific
+// ================ Progress bar
 
-.text {
-  max-width: 660px;
-}
-
-#main-menu {
-  margin-top: 20px;
-}
-
-.nav > li > a:hover {
-  text-decoration: none;
-  background-color: @osbBackground;
-}
-
-#why-bountyoss {
-  .hero-unit;
-}
-
-a.misc-button {
-  margin-left: 160px;
-  margin-top: 5px;
-  margin-bottom: 5px;  
-}
-
-.explanation
+#ajax-progress
 {
-  font-family: arial, helvetica, sans-serif;
-  font-size: 90%;
-  color: #606060;
-  padding-bottom: 9px;
-/*  max-width: 440px; */
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1000;
 }
 
-.osb-footer table {
-  margin-top: 20px;
-  margin-left: auto;
-  margin-right: auto;
-  table-layout: fixed;
-  font-size: small;
-  font-family: arial, helvetica, sans-serif;
-  color: @linkColor;
-}
+
