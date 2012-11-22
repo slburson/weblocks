@@ -98,6 +98,7 @@
    (force-hostname :type (or null string)
 		   :reader weblocks-webapp-force-hostname
 		   :initarg :force-hostname
+		   :initform nil
 		   :documentation
 		   "If supplied, must match one of HOSTNAMES; if the client supplies a
 		   hostname other than this one, we redirect them (301) to this one.")
