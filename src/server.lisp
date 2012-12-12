@@ -57,14 +57,14 @@ declared AUTOSTART."
     (enable-global-debugging)
     (disable-global-debugging))
   (when (null *weblocks-server*)
-    (values
-      (start (setf *weblocks-server*
-                   (apply #'make-instance acceptor-class :port port
-                          (remove-keyword-parameters keys :port :debug :acceptor-class))))
-      (mapcar (lambda (class)
-                (unless (get-webapps-for-class class)
-                  (start-webapp class :debug debug)))
-              *autostarting-webapps*))))
+    (let ((srvr (apply #'make-instance acceptor-class :port port
+			    (remove-keyword-parameters keys :port :debug :acceptor-class))))
+      (start srvr)
+      (setf *weblocks-server* srvr)
+      (values srvr (mapcar (lambda (class)
+			     (unless (get-webapps-for-class class)
+			       (start-webapp class :debug debug)))
+			   *autostarting-webapps*)))))
 
 (defun stop-weblocks ()
   "Stops weblocks. Closes all stores declared via 'defstore'."
