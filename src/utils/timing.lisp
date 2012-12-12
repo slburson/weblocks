@@ -23,7 +23,11 @@
   (with-gensyms (start/real start/cpu
                  end/real end/cpu
                  spent/real spent/cpu)
-    `(let ((thunk (lambda () ,@body)))
+    `(let ((thunk (lambda ()
+		    (declare #+sbcl (sb-ext:unmuffle-conditions sb-ext:compiler-note))
+		    ,@body)))
+       ;; Silence fixnum arithmetic optimization notes on SBCL.
+       (declare #+sbcl (sb-ext:muffle-conditions sb-ext:compiler-note))
        (if *enable-timings*
          (let ((,start/real (get-internal-real-time))
                (,start/cpu (get-internal-run-time)))
