@@ -201,10 +201,6 @@ customize behavior."))
               (update-state-from-location-hash w hash))
            (get-widgets-by-type 'location-hash-dependent)))))
 
-(defvar *cache-page-p* nil
-  "Bound to T around rendering.  Anything that generates dynamic content can
-set it to NIL to disable caching of the current page.")
-
 (defun update-widget-tree ()
   (let ((*tree-update-pending* t)
         (depth 0)
@@ -264,36 +260,45 @@ set it to NIL to disable caching of the current page.")
             (bordeaux-threads:make-lock (format nil "session lock for session ~S" *session*))))
     (gethash *session* *session-locks*)))
 
+(defvar *cache-page-p* nil
+  "Bound to T around rendering.  Anything that generates dynamic content can
+set it to NIL to disable caching of the current page.")
+
+(defvar *page-needs-timezone-p* nil)
+
 (defmethod handle-normal-request ((app weblocks-webapp))
   (declare (special *current-page-description*
 		    *weblocks-output-stream*
                     *uri-tokens*))
-  ; we need to render widgets before the boilerplate HTML
-  ; that wraps them in order to collect a list of script and
-  ; stylesheet dependencies.
+  ;; we need to render widgets before the boilerplate HTML
+  ;; that wraps them in order to collect a list of script and
+  ;; stylesheet dependencies.
   (webapp-update-thread-status "Handling normal request [tree shakedown]")
-  (bordeaux-threads:with-lock-held ((session-lock))
-    (let ((*cache-page-p* t))
-      (handler-case (timing "tree shakedown"
-		      (update-widget-tree))
-	(http-not-found () (return-from handle-normal-request
-					(page-not-found-handler app))))
+  (let ((*page-needs-timezone-p* nil))
+    (bordeaux-threads:with-lock-held ((session-lock))
+      (let ((*cache-page-p* t))
+	(handler-case (timing "tree shakedown"
+			(update-widget-tree))
+	  (http-not-found () (return-from handle-normal-request
+					  (page-not-found-handler app))))
 
-      (webapp-update-thread-status "Handling normal request [rendering widgets]")
-      (timing "widget tree rendering"
-	(render-widget (root-widget)))
-      (unless *cache-page-p*
-	(no-cache))))
-  ; set page title if it isn't already set
-  (when (and (null *current-page-description*)
-             (last (all-tokens *uri-tokens*)))
-    (setf *current-page-description* 
-          (humanize-name (last-item (all-tokens *uri-tokens*)))))
-  ; render page will wrap the HTML already rendered to
-  ; *weblocks-output-stream* with necessary boilerplate HTML
-  (webapp-update-thread-status "Handling normal request [rendering page]")
-  (timing "page render"
-    (render-page app))
+	(webapp-update-thread-status "Handling normal request [rendering widgets]")
+	(timing "widget tree rendering"
+	  (render-widget (root-widget)))
+	(unless *cache-page-p*
+	  (no-cache)
+	  ;; A future AJAX request might need the timezone.
+	  (session-timezone-offset))))
+    ;; set page title if it isn't already set
+    (when (and (null *current-page-description*)
+	       (last (all-tokens *uri-tokens*)))
+      (setf *current-page-description* 
+	    (humanize-name (last-item (all-tokens *uri-tokens*)))))
+    ;; render page will wrap the HTML already rendered to
+    ;; *weblocks-output-stream* with necessary boilerplate HTML
+    (webapp-update-thread-status "Handling normal request [rendering page]")
+    (timing "page render"
+      (render-page app)))
   ;; make sure all tokens were consumed (FIXME: still necessary?)
   (unless (or (tokens-fully-consumed-p *uri-tokens*)
               (null (all-tokens *uri-tokens*)))

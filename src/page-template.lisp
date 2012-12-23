@@ -58,17 +58,17 @@ page HTML (title, stylesheets, etc.).  Can be overridden by subclasses"))
   "Default page rendering template and protocol"
   ; Note, anything that precedes the doctype puts IE6 in quirks mode
   ; (format *weblocks-output-stream* "<?xml version=\"1.0\" encoding=\"utf-8\" ?>")
-  (declare (special *page-dependencies*))
-  (let ((rendered-html (get-output-stream-string *weblocks-output-stream*))
-	(all-dependencies (timing "compact-dependencies"
-                            (compact-dependencies (append (webapp-application-dependencies)
-                                                          *page-dependencies*)))))
+  (declare (special *page-dependencies* *page-needs-timezone-p*))
+  (let* ((rendered-html (get-output-stream-string *weblocks-output-stream*))
+	 (all-dependencies (timing "compact-dependencies"
+			     (compact-dependencies (append (webapp-application-dependencies)
+							   *page-dependencies*)))))
     (with-html-output (*weblocks-output-stream* nil :prologue t)
       (:html (:head
 	      (:title (str (application-page-title app)))
 	      (render-page-headers app)
 	      (mapc #'render-dependency-in-page-head all-dependencies))
-	     (:body :onload "checkTZCookie();"
+	     (:body :onload (and *page-needs-timezone-p* "checkTZCookie();")
 	      (render-page-body app rendered-html)
 	      (:div :id "ajax-progress" "&nbsp;")
               (with-javascript "updateWidgetStateFromHash();"))))))

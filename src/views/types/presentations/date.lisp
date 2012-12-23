@@ -6,27 +6,28 @@
 
 (defconstant +seconds-per-day+ (* 24 60 60))
 
-;;; Request hook to get the browser's timezone.  Requires JavaScript.
+;;; Reads cookie to get the browser's timezone.  Requires JavaScript.
 ;;; See /pub/scripts/timezone.js.
-(defun set-up-timezone ()
-  (let ((tz (cookie-in "TimeZoneOffset")))
-    (when tz
-      (handler-case
-	  (setf (session-value ':timezone-offset) (/ (parse-integer tz) 60))
-	(error ())))))
-
-(pushnew 'set-up-timezone (request-hook :application :pre-action))
-
 (defun session-timezone-offset ()
   "Returns the session timezone offset as hours west of UTC, if known; otherwise
-NIL.  Note that this can be a ratio in the case of a half-hour offset, as in India."
-  (session-value ':timezone-offset))
+0.  Note that this can be a ratio in the case of a half-hour offset, as in India."
+  (declare (special *page-needs-timezone-p*))
+  (or (session-value ':timezone-offset)
+      (let ((tz (cookie-in "TimeZoneOffset")))
+	(if tz
+	    (handler-case
+		(setf (session-value ':timezone-offset) (/ (parse-integer tz) 60))
+	      (error ()))
+	  (progn
+	    (setq *page-needs-timezone-p* t)
+	    nil)))
+      0))
 
 
 (defun date->utime (day month year hour minute)
   (encode-universal-time 0 minute hour day month year
 			 ;; N.B.: If we don't know the browser's timezone (because Javascript
-			 ;; is off), we'll use the server's timezone.  Better idea?
+			 ;; is off), we'll use UTC.
 			 (session-timezone-offset)))
 
 (defclass date-parser (parser)
