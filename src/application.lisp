@@ -29,6 +29,7 @@
           make-webapp-uri
           make-webapp-public-file-uri
           reset-webapp-session
+	  get-real-session
           webapp-session-key
 	  webapp-session-value
           delete-webapp-session-value
@@ -143,6 +144,15 @@
                           :initarg :gzip-dependency-types
 			  :initform '(:stylesheet :script)
 			  :documentation "This enables gzipping of css, js files.")
+   ;; This feature, off by default, allows you to delay setting the session cookie until
+   ;; the user selects a dynamic page.  This allows static pages to be cached by a reverse
+   ;; proxy.  (A dynamic page is one containing an action link.)
+   (use-default-session-p :accessor weblocks-webapp-use-default-session-p
+			  :initarg :use-default-session-p
+			  :initform nil
+			  :documentation
+			  "If true, requests that come in without a known existing session
+			   are assigned the default session, until GET-REAL-SESSION is called.")
    (init-user-session :type (or symbol function)
                       :accessor weblocks-webapp-init-user-session
                       :initarg :init-user-session
@@ -262,6 +272,10 @@ the uri to the path specified by public-files-path.
 
 :public-files-cache-time - make the client cache public files for N
 seconds (default 3600). Caching is disabled in debug mode.
+
+:use-default-session-p - If true, requests that come in without a known
+existing session are assigned the default session.  GET-REAL-SESSION
+can be called to force a client-specific session to be generated."
 
 :init-user-session - A function object that is used to initialize new
 user sessions. If it is not passed, a function named
@@ -443,6 +457,49 @@ provider URI)."
     app))
 
 
+(defclass default-session (session)
+    ())
+
+(defmethod initialize-instance :after ((session default-session) &rest args)
+  (declare (ignore args))
+  (setf (slot-value session 'tbnl::session-string) "default"))
+
+(defmethod tbnl:session-cookie-value ((session default-session))
+  nil)
+
+(defmethod initialize-session ((app weblocks-webapp))
+  (if (weblocks-webapp-use-default-session-p app)
+      (let ((s (get-default-session)))
+	(setf *session* s
+	      (session *request*) s))
+    (start-real-session)))
+
+(defvar *default-session* nil)
+
+(defun get-default-session ()
+  (or *default-session*
+      (let ((session (make-instance 'default-session)))
+	(set-webapp-session-value 'last-request-uri ':none session)
+	;; Race condition, but without adverse consequence (there may be two of
+	;; these floating around for a little while, which is not a problem).
+	(setq *default-session* session)
+	*default-session*)))
+
+(defun get-real-session ()
+  "When using the default session, call this before setting any session values
+that need to be client-specific.  Be aware that this can call REDIRECT, which
+will throw, when starting the new session."
+  (when (typep *session* 'default-session)
+    (setf *session* nil
+	  (session *request*) nil)
+    (start-real-session)
+    *session*))
+
+(defun start-real-session ()
+  (start-session)
+  (when *rewrite-for-session-urls*
+    (redirect (request-uri*) :defer nil)))
+
 ;;; webapp-scoped session values
 (defun webapp-session-key (&optional (webapp (current-webapp)))
   (weblocks-webapp-session-key webapp))
@@ -458,9 +515,17 @@ KEY is compared using EQUAL."
 	  (t
            nil))))
 
-(defun (setf webapp-session-value) (value key &optional (session *session*) (webapp (current-webapp)))
+(defun (setf webapp-session-value) (value key
+				    &optional (session *session*) (webapp (current-webapp)))
   "Set a session value for the currently running webapp.
 KEY is compared using EQUAL."
+  (unless (and (eq key 'last-request-uri)
+	       (typep session 'default-session))
+    (assert (or (member key '(root-widget request-hooks))
+		(not (typep session 'default-session))))
+    (set-webapp-session-value key value session webapp)))
+
+(defun set-webapp-session-value (key value &optional (session *session*) (webapp (current-webapp)))
   (let ((webapp-session (session-value (webapp-session-key webapp) session)))
     (unless webapp-session
       (setf webapp-session (make-hash-table :test #'equal)

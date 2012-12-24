@@ -12,11 +12,12 @@
   "Returns the session timezone offset as hours west of UTC, if known; otherwise
 0.  Note that this can be a ratio in the case of a half-hour offset, as in India."
   (declare (special *page-needs-timezone-p*))
-  (or (session-value ':timezone-offset)
+  (get-real-session)
+  (or (webapp-session-value ':timezone-offset)
       (let ((tz (cookie-in "TimeZoneOffset")))
 	(if tz
 	    (handler-case
-		(setf (session-value ':timezone-offset) (/ (parse-integer tz) 60))
+		(setf (webapp-session-value ':timezone-offset) (/ (parse-integer tz) 60))
 	      (error ()))
 	  (progn
 	    (setq *page-needs-timezone-p* t)

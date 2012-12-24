@@ -62,12 +62,13 @@ the stored function.
 appropriate control (link, form, etc.) GET and POST parameters will be
 passed to this function as keyword arguments by the framework.
 
-'action-code' - The code to use for an action (if not specified
+'action-code' - The code to use for an action (if not specified,
 make-action generates a unique value for each action). Note, if you
 don't provide a hard to guess code ('generate-action-code' is used by
 default), the user will be vulnerable to an attack where a malicious
-attacker can attempt to guess a dangerour action id and send the user
+attacker can attempt to guess a dangerous action id and send the user
 a link to it. Only use guessable action codes for GET actions."
+  (get-real-session)
   (setf (webapp-session-value action-code) action-fn)
   (setq *cache-page-p* nil)
   action-code)

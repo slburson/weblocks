@@ -107,10 +107,8 @@ customize behavior."))
     (when (null *session*)
       (when (get-request-action-name)
 	(expired-action-handler app))
-      (start-session)
-      (setf (webapp-session-value 'last-request-uri) :none)
-      (when *rewrite-for-session-urls*
-        (redirect (request-uri*))))
+      (initialize-session app)
+      (setf (webapp-session-value 'last-request-uri) :none))
     (when *maintain-last-session*
       (bordeaux-threads:with-lock-held (*maintain-last-session*)
 	(setf *last-session* *session*)))
