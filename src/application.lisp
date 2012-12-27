@@ -275,7 +275,7 @@ seconds (default 3600). Caching is disabled in debug mode.
 
 :use-default-session-p - If true, requests that come in without a known
 existing session are assigned the default session.  GET-REAL-SESSION
-can be called to force a client-specific session to be generated."
+can be called to force a client-specific session to be generated.
 
 :init-user-session - A function object that is used to initialize new
 user sessions. If it is not passed, a function named
