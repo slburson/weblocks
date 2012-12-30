@@ -100,12 +100,13 @@
 (defmethod render-view-field-value (value (presentation text-presentation)
 				    field view widget obj &rest args
 				    &key highlight &allow-other-keys)
-  (let ((printed-value (apply #'print-view-field-value value presentation field view widget obj args)))
+  (let ((printed-value (escape-for-html (apply #'print-view-field-value value presentation field
+					       view widget obj args))))
     (with-html
       (:span :class "value"
 	     (str (if highlight
 		      (highlight-regex-matches printed-value highlight presentation)
-		      (escape-for-html printed-value)))))))
+		      printed-value))))))
 
 (defmethod render-view-field-value ((value null) (presentation text-presentation)
 				    field view widget obj &rest args
