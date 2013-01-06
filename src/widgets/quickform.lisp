@@ -13,7 +13,7 @@
   present forms. Use 'make-quickform' for easy configuration."))
 
 (defun make-quickform (view &rest args &key on-success on-cancel satisfies
-		       data (answerp t) (class 'quickform)
+		       data answerp (class 'quickform)
 		       (data-class-name (gensym)) class-store
 		       &allow-other-keys)
   "Returns an instance of a dataform widget configured to quickly an
@@ -40,8 +40,8 @@ messages as the second value.
 'data' - an optional data object to be used. If the data object isn't
 provided, it will be generated from the view automatically.
 
-'answerp' - if set to true (default), the widget automatically calls
-answer on itself on success or cancellation. If on-success is present,
+'answerp' - if set to true, the widget automatically calls ANSWER
+on itself on success or cancellation. If on-success is present,
 answers with its return value. Otherwise, returns the data object.
 
 'class' - a class of the quickform widget. By default uses
