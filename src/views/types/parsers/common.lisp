@@ -198,3 +198,20 @@ on 'symbol' and 'keyword'."
     (when (and object (funcall (object-id-parser-test parser) object))
       (values t t object))))
 
+;;; List
+(defclass list-parser (parser)
+  ((target-package :type (or package symbol string)
+		   :accessor list-parser-target-package
+                   :initarg :target-package
+		   :initform (find-package "CL-USER")))
+  (:default-initargs :error-message "The value must be valid list structure.")
+  (:documentation "A parser that just calls READ."))
+
+(defmethod parse-view-field-value ((parser list-parser) value obj
+				   (view form-view) (field form-view-field) &rest args)
+  (declare (ignore args))
+  (let ((*package* (list-parser-target-package parser))
+	(*read-eval* nil))	; disable #. (!!!)
+    (handler-case (values t t (read-from-string value))
+      (error ()
+	(values t nil)))))
