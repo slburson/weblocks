@@ -16,7 +16,7 @@
 		       data (answerp t) (class 'quickform)
 		       (data-class-name (gensym)) class-store
 		       &allow-other-keys)
-  "Returns an instance of a dataform widget configured to quickly an
+  "Returns an instance of a dataform widget configured to quickly and
 easily present forms. The advantage of using 'make-quickform' over
 simply calling 'render-view' is that the widget produced by
 'make-quickform' validates the form and deserializes it into an

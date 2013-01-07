@@ -63,3 +63,8 @@ to the SSL port."))
 			:code +http-moved-permanently+
 			:add-session-id nil))
 
+
+(defmethod acceptor-status-message :around ((acceptor weblocks-acceptor)
+					    (http-status-code (eql 500))
+					    &key &allow-other-keys)
+  nil)
