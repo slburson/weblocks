@@ -225,7 +225,7 @@
 		 (:file "server"
 			:depends-on ("weblocks" "acceptor" "debug-mode" utils store))
 		 (:file "request"
-			:depends-on ("weblocks" "request-hooks" "actions"))
+			:depends-on ("weblocks" "request-hooks" "actions" "application"))
 		 (:file "application-mop"
 			:depends-on ("weblocks" "server"))
 		 (:file "application"
