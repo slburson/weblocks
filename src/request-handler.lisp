@@ -295,6 +295,8 @@ set it to NIL to disable caching of the current page.")
     ;; render page will wrap the HTML already rendered to
     ;; *weblocks-output-stream* with necessary boilerplate HTML
     (webapp-update-thread-status "Handling normal request [rendering page]")
+    ;; Clickjacking protection.
+    (setf (header-out "X-Frame-Options") (weblocks-webapp-frame-options app))
     (timing "page render"
       (render-page app)))
   ;; make sure all tokens were consumed (FIXME: still necessary?)
