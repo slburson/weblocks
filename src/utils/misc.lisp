@@ -43,7 +43,7 @@ error is signalled."
   (when (eq (request-method*) :head)
     (warn "User agent ~S sent a HEAD request" (hunchentoot:user-agent)))
   (ecase (request-method*)
-    (:get (get-parameter name))
+    ((:get :head) (get-parameter name))
     (:post (post-parameter name))))
 
 (defun request-parameters ()
@@ -52,7 +52,7 @@ via GET method, the parameters are obtained from the query string. If
 the request was submitted via POST, the parameters are obtained from
 the body of the request. Otherwise, an error is signalled."
   (ecase (request-method*)
-    (:get (get-parameters*))
+    ((:get :head) (get-parameters*))
     (:post (post-parameters*))))
 
 (defun public-file-relative-path (type filename)
