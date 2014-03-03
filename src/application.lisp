@@ -167,6 +167,13 @@
     :documentation "If non-nil, the name of the `*default-store*'
     bound during request handlers.")
    (session-key :type symbol :accessor weblocks-webapp-session-key :initarg :session-key)
+   (frame-options :type string
+		  :accessor weblocks-webapp-frame-options
+		  :initarg :frame-options
+		  :initform "sameorigin"
+		  :documentation
+		  "Value for the X-Frame-Options header, which provides partial protection
+		   against clickjacking.")
    (debug :accessor weblocks-webapp-debug :initarg :debug :initform nil)
    (html-indent-p :accessor weblocks-webapp-html-indent-p :initarg :html-indent-p :initform nil
 		  :documentation "Turns on indentation of HTML for easier visual inspection."))

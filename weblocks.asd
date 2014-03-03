@@ -136,7 +136,8 @@
 								   (:file "image")
 								   (:file "checkboxes")
 								   (:file "url")
-								   (:file "html")))
+								   (:file "html")
+								   (:file "list")))
 						     (:module
 						      parsers
 						      :components ((:file "common"))))
@@ -225,7 +226,7 @@
 		 (:file "server"
 			:depends-on ("weblocks" "acceptor" "debug-mode" utils store))
 		 (:file "request"
-			:depends-on ("weblocks" "request-hooks" "actions" "application"))
+			:depends-on ("weblocks" "application" "request-hooks" "actions"))
 		 (:file "application-mop"
 			:depends-on ("weblocks" "server"))
 		 (:file "application"
