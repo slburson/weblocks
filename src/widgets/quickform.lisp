@@ -42,7 +42,7 @@ provided, it will be generated from the view automatically.
 
 'answerp' - if set to true, the widget automatically calls ANSWER
 on itself on success or cancellation. If on-success is present,
-answers with its return value. Otherwise, returns the data object.
+answers with its return value, else with the data object.
 
 'class' - a class of the quickform widget. By default uses
 'quickform'.
