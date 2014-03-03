@@ -93,13 +93,13 @@ name of the field to inform users that the field is required.")
    (satisfies :initform nil
 	      :initarg :satisfies
 	      :accessor form-view-satisfies
-	      :documentation "A function or a list of functions that
-perform validation on the entire view (possibly combining multiple fields).
-The first argument to the function is the object, still in its previous
-state, i.e. the new form values have not been stored in it yet.  The
-second argument is an alist of slot names and parsed values from the form.
-The function should either return t if the form validates properly, or
-values nil error-message if it does not.")
+	      :documentation "A list of functions that perform validation
+on the entire view (possibly combining multiple fields).  The first
+argument to the function is the object, still in its previous state,
+i.e. the new form values have not been stored in it yet.  The second
+argument is an alist of slot names and parsed values from the form.  The
+function should either return t if the form validates properly, or values
+nil error-message if it does not.")
   (instructions :type (or string null)
                 :initform nil
                 :initarg :instructions
