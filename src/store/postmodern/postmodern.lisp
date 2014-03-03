@@ -1,6 +1,6 @@
 (defpackage #:weblocks-postmodern
   (:use :cl :postmodern :weblocks)
-  (:shadowing-import-from :postmodern #:text)
+  (:shadowing-import-from :postmodern #:text #:with-transaction)
   (:shadowing-import-from :weblocks #:commit-transaction)
   (:documentation
    "A driver for weblocks backend store API that connects to Postmodern."))

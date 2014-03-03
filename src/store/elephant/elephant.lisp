@@ -3,7 +3,7 @@
 (defpackage #:weblocks-elephant
   (:use :cl :weblocks :weblocks-memory :elephant :metatilities :metabang.moptilities)
   (:shadowing-import-from :weblocks #:open-store #:close-store)
-  (:shadowing-import-from :elephant #:find-item #:insert-item #:add-index)
+  (:shadowing-import-from :elephant #:find-item #:insert-item #:add-index #:with-transaction)
   (:export #:defpclass)
   (:documentation
    "A driver for weblocks backend store API that connects to Elephant."))
